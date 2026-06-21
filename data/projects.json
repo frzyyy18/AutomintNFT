@@ -1,0 +1,22 @@
+{
+  "projects": [
+    {
+      "slug": "kuongate",
+      "name": "Kuongate",
+      "chain": "ethereum",
+      "wl_url": "https://kuongate.xyz",
+      "adapter": "kuongate",
+      "submit_path": "/api/allowlist/submit",
+      "required_fields": ["twitter_handle", "share_link"],
+      "field_map": {
+        "username": "twitter_handle",
+        "share_link": "share_link",
+        "wallet": "wallet_address",
+        "email": "gmail",
+        "project_name": "project_name",
+        "note": "note",
+        "image": "image"
+      }
+    }
+  ]
+}

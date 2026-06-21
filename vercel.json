@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/summary", "dest": "/webapp.py" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

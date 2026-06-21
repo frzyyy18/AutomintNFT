@@ -1,0 +1,10 @@
+{
+  "name": "automintnft",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "python3 -m http.server 3000",
+    "build": "echo 'static site - no build step'",
+    "check": "echo 'static site - no checks'"
+  }
+}

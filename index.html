@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutomintNFT</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0b1020; color: #e5e7eb; }
+    header, main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    h1, h2, h3, p { margin: 0 0 12px; }
+    .muted { color: #94a3b8; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .card { background: #121a33; border: 1px solid #24304f; border-radius: 16px; padding: 16px; }
+    input, textarea, select, button { width: 100%; box-sizing: border-box; margin: 6px 0 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #e5e7eb; }
+    button { cursor: pointer; border: none; background: linear-gradient(135deg, #2563eb, #7c3aed); font-weight: 700; }
+    button.secondary { background: #1f2937; }
+    button.ghost { background: transparent; border: 1px solid #334155; }
+    pre { margin: 0; padding: 12px; overflow-x: auto; background: #0f172a; border: 1px solid #24304f; border-radius: 12px; white-space: pre-wrap; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .list { display: grid; gap: 10px; }
+    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #1f2a44; color: #cbd5e1; font-size: 12px; margin-right: 6px; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { border-bottom: 1px solid #24304f; padding: 8px 6px; text-align: left; vertical-align: top; }
+    .table th { color: #cbd5e1; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+    .topbar .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .small { font-size: 13px; }
+    .good { color: #86efac; }
+    .bad { color: #fca5a5; }
+    .warn { color: #fcd34d; }
+    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .footer { max-width: 1200px; margin: 0 auto; padding: 0 24px 32px; color: #94a3b8; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>AutomintNFT</h1>
+        <div class="muted">Website WL submit • eligibility check • mint pipeline • account manager</div>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="exportBtn">Export JSON</button>
+        <button class="ghost" id="resetBtn">Reset demo data</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <div class="section-head">
+        <h2>Summary</h2>
+        <button class="secondary small" id="refreshSummary">Refresh</button>
+      </div>
+      <div id="summaryBox"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Account Manager</h2>
+        <button class="secondary small" id="refreshAccounts">Refresh</button>
+      </div>
+      <form id="accountForm">
+        <div class="row">
+          <input name="account_id" type="number" placeholder="Account ID" required>
+          <input name="label" placeholder="Label">
+        </div>
+        <div class="row">
+          <input name="wallet_address" placeholder="Wallet address">
+          <input name="twitter_handle" placeholder="Twitter handle">
+        </div>
+        <div class="row">
+          <input name="gmail" placeholder="Gmail">
+          <input name="discord_user_id" placeholder="Discord user ID">
+        </div>
+        <div class="row">
+          <input name="discord_bot_name" placeholder="Discord bot name">
+          <input name="status" placeholder="Status" value="active">
+        </div>
+        <textarea name="notes" placeholder="Notes"></textarea>
+        <button type="submit">Save Account</button>
+      </form>
+      <div id="accountsBox" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Projects</h2>
+        <button class="secondary small" id="refreshProjects">Refresh</button>
+      </div>
+      <form id="projectForm">
+        <div class="row">
+          <input name="slug" value="kuongate" placeholder="Slug" required>
+          <input name="name" value="Kuongate" placeholder="Name">
+        </div>
+        <div class="row">
+          <input name="chain" value="ethereum" placeholder="Chain">
+          <input name="wl_url" value="https://kuongate.xyz" placeholder="WL URL">
+        </div>
+        <div class="row">
+          <input name="adapter" value="kuongate" placeholder="Adapter">
+          <input name="submit_path" value="/api/allowlist/submit" placeholder="Submit path">
+        </div>
+        <textarea name="required_fields" placeholder="Required fields (comma separated)">twitter_handle,share_link</textarea>
+        <button type="submit">Save Project</button>
+      </form>
+      <div id="projectsBox" class="list"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>WL Submit</h2>
+        <button class="secondary small" id="runWlBtn">Run WL</button>
+      </div>
+      <form id="wlForm">
+        <div class="row">
+          <input name="project" value="kuongate" placeholder="Project slug" required>
+          <input name="select_by" value="twitter_handle" placeholder="Select by (wallet_address/twitter_handle)">
+        </div>
+        <div class="row">
+          <input name="select_value" placeholder="Wallet or Twitter handle" required>
+          <input name="share_link" placeholder="Share link">
+        </div>
+        <input name="image" placeholder="Image path (optional)">
+        <textarea name="note" placeholder="Note"></textarea>
+        <button type="submit">Submit WL</button>
+      </form>
+      <pre id="wlResult">Belum ada hasil.</pre>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Eligibility</h2>
+        <button class="secondary small" id="runCheckBtn">Run Check</button>
+      </div>
+      <form id="checkForm">
+        <div class="row">
+          <input name="project" value="kuongate" placeholder="Project slug" required>
+          <button type="submit">Check eligibility</button>
+        </div>
+      </form>
+      <pre id="checkResult">Belum ada hasil.</pre>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Mint</h2>
+        <button class="secondary small" id="runMintBtn">Run Mint</button>
+      </div>
+      <form id="mintForm">
+        <div class="row">
+          <input name="project" value="kuongate" placeholder="Project slug" required>
+          <input name="stage" value="PUBLIC" placeholder="Stage">
+        </div>
+        <button type="submit">Mint pipeline</button>
+      </form>
+      <pre id="mintResult">Belum ada hasil.</pre>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Pipeline</h2>
+        <button class="secondary small" id="runPipelineBtn">Run Pipeline</button>
+      </div>
+      <form id="pipelineForm">
+        <div class="row">
+          <input name="project" value="kuongate" placeholder="Project slug" required>
+          <input name="stage" value="PUBLIC" placeholder="Stage">
+        </div>
+        <button type="submit">Check + Mint</button>
+      </form>
+      <pre id="pipelineResult">Belum ada hasil.</pre>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Data Store</h2>
+        <button class="secondary small" id="clearLogsBtn">Clear results</button>
+      </div>
+      <pre id="dataDump">...</pre>
+    </section>
+  </main>
+
+  <div class="footer">
+    Vercel-ready static dashboard. Data disimpan di browser localStorage untuk demo/operasional ringan.
+  </div>
+
+  <script>
+    const STORAGE_KEYS = {
+      accounts: 'automintnft.accounts',
+      projects: 'automintnft.projects',
+      submissions: 'automintnft.submissions',
+      eligibility: 'automintnft.eligibility',
+      mints: 'automintnft.mints'
+    };
+
+    const DEFAULT_PROJECTS = [
+      {
+        slug: 'kuongate',
+        name: 'Kuongate',
+        chain: 'ethereum',
+        wl_url: 'https://kuongate.xyz',
+        adapter: 'kuongate',
+        submit_path: '/api/allowlist/submit',
+        required_fields: ['twitter_handle', 'share_link'],
+        field_map: {
+          username: 'twitter_handle',
+          share_link: 'share_link',
+          wallet: 'wallet_address',
+          email: 'gmail',
+          project_name: 'project_name',
+          note: 'note',
+          image: 'image'
+        }
+      }
+    ];
+
+    const DEFAULT_ACCOUNTS = [
+      {
+        account_id: 1,
+        label: 'main',
+        wallet_address: '0x0000000000000000000000000000000000000000',
+        twitter_handle: '',
+        gmail: '',
+        discord_user_id: '',
+        discord_bot_name: '',
+        status: 'active',
+        notes: 'template account'
+      }
+    ];
+
+    function read(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function write(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function ensureSeed() {
+      if (!localStorage.getItem(STORAGE_KEYS.projects)) write(STORAGE_KEYS.projects, DEFAULT_PROJECTS);
+      if (!localStorage.getItem(STORAGE_KEYS.accounts)) write(STORAGE_KEYS.accounts, DEFAULT_ACCOUNTS);
+      if (!localStorage.getItem(STORAGE_KEYS.submissions)) write(STORAGE_KEYS.submissions, []);
+      if (!localStorage.getItem(STORAGE_KEYS.eligibility)) write(STORAGE_KEYS.eligibility, []);
+      if (!localStorage.getItem(STORAGE_KEYS.mints)) write(STORAGE_KEYS.mints, []);
+    }
+
+    function nowIso() {
+      return new Date().toISOString();
+    }
+
+    function stageBucket(stageName) {
+      const value = String(stageName || '').toLowerCase();
+      if (value.includes('gtd') || value.includes('allowlist') || value.includes('wl') || value.includes('presale')) return 'GTD';
+      if (value.includes('fcfs') || value.includes('first come')) return 'FCFS';
+      if (value.includes('public')) return 'PUBLIC';
+      return 'UNKNOWN';
+    }
+
+    function normalizeHandle(value) {
+      return String(value || '').trim().toLowerCase().replace(/^@/, '');
+    }
+
+    function getProjects() { return read(STORAGE_KEYS.projects, DEFAULT_PROJECTS); }
+    function getAccounts() { return read(STORAGE_KEYS.accounts, DEFAULT_ACCOUNTS); }
+    function getSubmissions() { return read(STORAGE_KEYS.submissions, []); }
+    function getEligibility() { return read(STORAGE_KEYS.eligibility, []); }
+    function getMints() { return read(STORAGE_KEYS.mints, []); }
+
+    function findProject(slug) {
+      return getProjects().find((project) => project.slug === slug);
+    }
+
+    function findAccountByWallet(wallet) {
+      return getAccounts().find((account) => String(account.wallet_address || '').toLowerCase().trim() === String(wallet || '').toLowerCase().trim());
+    }
+
+    function findAccountByTwitter(handle) {
+      const needle = normalizeHandle(handle);
+      return getAccounts().find((account) => normalizeHandle(account.twitter_handle) === needle);
+    }
+
+    function upsertAccount(account) {
+      const items = getAccounts();
+      const idx = items.findIndex((item) => Number(item.account_id) === Number(account.account_id));
+      if (idx >= 0) items[idx] = account; else items.push(account);
+      items.sort((a, b) => Number(a.account_id) - Number(b.account_id));
+      write(STORAGE_KEYS.accounts, items);
+    }
+
+    function upsertProject(project) {
+      const items = getProjects();
+      const idx = items.findIndex((item) => item.slug === project.slug);
+      if (idx >= 0) items[idx] = project; else items.push(project);
+      items.sort((a, b) => String(a.slug).localeCompare(String(b.slug)));
+      write(STORAGE_KEYS.projects, items);
+    }
+
+    function renderSummary() {
+      const projects = getProjects();
+      const accounts = getAccounts();
+      const submissions = getSubmissions();
+      const eligibility = getEligibility();
+      const mints = getMints();
+      document.getElementById('summaryBox').innerHTML = `
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+          <div class="card" style="margin:0"><div class="small muted">Projects</div><h3>${projects.length}</h3></div>
+          <div class="card" style="margin:0"><div class="small muted">Accounts</div><h3>${accounts.length}</h3></div>
+          <div class="card" style="margin:0"><div class="small muted">WL submits</div><h3>${submissions.length}</h3></div>
+          <div class="card" style="margin:0"><div class="small muted">Eligibility rows</div><h3>${eligibility.length}</h3></div>
+          <div class="card" style="margin:0"><div class="small muted">Mint rows</div><h3>${mints.length}</h3></div>
+        </div>
+      `;
+      document.getElementById('dataDump').textContent = JSON.stringify({ projects, accounts, submissions, eligibility, mints }, null, 2);
+    }
+
+    function renderAccounts() {
+      const box = document.getElementById('accountsBox');
+      const accounts = getAccounts();
+      box.innerHTML = accounts.map((account) => `
+        <div class="card" style="margin:0">
+          <div><span class="pill">#${account.account_id}</span><span class="pill">${account.status || 'active'}</span></div>
+          <div><strong>${account.label || '(no label)'}</strong></div>
+          <div class="small muted">${account.wallet_address || '(no wallet)'}</div>
+          <div class="small muted">${account.twitter_handle || '(no twitter)'}</div>
+          <div class="small muted">${account.gmail || '(no gmail)'}</div>
+          <div class="small muted">${account.discord_user_id || ''} ${account.discord_bot_name || ''}</div>
+          <div class="small muted">${account.notes || ''}</div>
+        </div>
+      `).join('') || '<div class="muted">Belum ada akun.</div>';
+    }
+
+    function renderProjects() {
+      const box = document.getElementById('projectsBox');
+      const projects = getProjects();
+      box.innerHTML = projects.map((project) => `
+        <div class="card" style="margin:0">
+          <div><span class="pill">${project.slug}</span><span class="pill">${project.chain || 'unknown'}</span></div>
+          <div><strong>${project.name || project.slug}</strong></div>
+          <div class="small muted">WL: ${project.wl_url || '-'}</div>
+          <div class="small muted">Adapter: ${project.adapter || '-'}</div>
+          <div class="small muted">Submit: ${project.submit_path || '-'}</div>
+          <div class="small muted">Required: ${(project.required_fields || []).join(', ')}</div>
+        </div>
+      `).join('') || '<div class="muted">Belum ada proyek.</div>';
+    }
+
+    function renderTables() {
+      const submissions = getSubmissions().slice().reverse().slice(0, 10);
+      const eligibility = getEligibility().slice().reverse().slice(0, 10);
+      const mints = getMints().slice().reverse().slice(0, 10);
+      const wl = submissions.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Project</th><th>Status</th></tr></thead><tbody>${submissions.map((row) => `<tr><td>${row.at}</td><td>${row.account_id}</td><td>${row.project}</td><td>${row.status}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada submit.</div>';
+      const check = eligibility.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Stage</th><th>Elig</th></tr></thead><tbody>${eligibility.map((row) => `<tr><td>${row.checked_at}</td><td>${row.account_id}</td><td>${row.stage_type}</td><td class="${row.eligible ? 'good' : 'bad'}">${row.eligible}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada eligibility.</div>';
+      const mint = mints.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Stage</th><th>Status</th></tr></thead><tbody>${mints.map((row) => `<tr><td>${row.minted_at}</td><td>${row.account_id}</td><td>${row.stage}</td><td>${row.status}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada mint.</div>';
+      document.getElementById('wlResult').textContent = submissions.length ? JSON.stringify(submissions[0], null, 2) : 'Belum ada hasil.';
+      document.getElementById('checkResult').textContent = eligibility.length ? JSON.stringify(eligibility[0], null, 2) : 'Belum ada hasil.';
+      document.getElementById('mintResult').textContent = mints.length ? JSON.stringify(mints[0], null, 2) : 'Belum ada hasil.';
+      document.getElementById('pipelineResult').textContent = JSON.stringify({ submissions: submissions.length, eligibility: eligibility.length, mints: mints.length }, null, 2);
+      return { wl, check, mint };
+    }
+
+    function submitWl(form) {
+      const data = Object.fromEntries(new FormData(form).entries());
+      const project = findProject(data.project);
+      if (!project) throw new Error('Project tidak ditemukan');
+      const account = data.select_by === 'wallet_address' ? findAccountByWallet(data.select_value) : findAccountByTwitter(data.select_value);
+      if (!account) throw new Error('Akun tidak ditemukan');
+      const record = {
+        at: nowIso(),
+        project: project.slug,
+        account_id: account.account_id,
+        wallet_address: account.wallet_address,
+        twitter_handle: account.twitter_handle,
+        share_link: data.share_link || '',
+        image: data.image || '',
+        note: data.note || '',
+        status: 'submitted'
+      };
+      const items = getSubmissions();
+      items.push(record);
+      write(STORAGE_KEYS.submissions, items);
+      return record;
+    }
+
+    function runCheck(projectSlug) {
+      const project = findProject(projectSlug);
+      if (!project) throw new Error('Project tidak ditemukan');
+      const rows = [];
+      for (const account of getAccounts()) {
+        for (const stage of ['GTD', 'FCFS', 'PUBLIC']) {
+          const eligible = stage === 'PUBLIC' || (account.status === 'active' && (account.wallet_address || account.twitter_handle));
+          rows.push({
+            account_id: account.account_id,
+            wallet_address: account.wallet_address,
+            twitter_handle: account.twitter_handle,
+            project: project.slug,
+            stage,
+            stage_type: stage,
+            eligible,
+            reason: eligible ? 'ready' : 'needs allowlist / active account',
+            status: eligible ? 'open' : 'closed',
+            checked_at: nowIso()
+          });
+        }
+      }
+      const items = getEligibility();
+      items.push(...rows);
+      write(STORAGE_KEYS.eligibility, items);
+      return { project: project.slug, rows };
+    }
+
+    function runMint(projectSlug, stage) {
+      const project = findProject(projectSlug);
+      if (!project) throw new Error('Project tidak ditemukan');
+      const eligibility = getEligibility().filter((row) => row.project === project.slug && row.stage_type === stage);
+      const rows = getAccounts().map((account) => {
+        const eligible = stage === 'PUBLIC' || eligibility.some((row) => Number(row.account_id) === Number(account.account_id) && row.eligible);
+        return {
+          account_id: account.account_id,
+          wallet_address: account.wallet_address,
+          twitter_handle: account.twitter_handle,
+          project: project.slug,
+          stage,
+          status: eligible ? 'ready' : 'blocked',
+          tx_hash: eligible ? `0x${Math.random().toString(16).slice(2).padEnd(64, '0').slice(0, 64)}` : '',
+          reason: eligible ? 'mint adapter not wired yet' : 'not eligible',
+          minted_at: nowIso()
+        };
+      });
+      const items = getMints();
+      items.push(...rows);
+      write(STORAGE_KEYS.mints, items);
+      return { project: project.slug, stage, rows };
+    }
+
+    function runPipeline(projectSlug, stage) {
+      const check = runCheck(projectSlug);
+      const mint = runMint(projectSlug, stage);
+      return { project: projectSlug, stage, eligibility: check.rows, mint: mint.rows };
+    }
+
+    function bindForms() {
+      document.getElementById('accountForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(event.target).entries());
+        const account = {
+          account_id: Number(data.account_id),
+          label: data.label || '',
+          wallet_address: data.wallet_address || '',
+          twitter_handle: data.twitter_handle || '',
+          gmail: data.gmail || '',
+          discord_user_id: data.discord_user_id || '',
+          discord_bot_name: data.discord_bot_name || '',
+          status: data.status || 'active',
+          notes: data.notes || ''
+        };
+        upsertAccount(account);
+        renderAll();
+      });
+
+      document.getElementById('projectForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(event.target).entries());
+        const project = {
+          slug: data.slug,
+          name: data.name || data.slug,
+          chain: data.chain || 'ethereum',
+          wl_url: data.wl_url || '',
+          adapter: data.adapter || 'generic',
+          submit_path: data.submit_path || '',
+          required_fields: String(data.required_fields || '').split(',').map((item) => item.trim()).filter(Boolean)
+        };
+        upsertProject(project);
+        renderAll();
+      });
+
+      document.getElementById('wlForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          const result = submitWl(event.target);
+          document.getElementById('wlResult').textContent = JSON.stringify(result, null, 2);
+          renderAll();
+        } catch (error) {
+          document.getElementById('wlResult').textContent = String(error.message || error);
+        }
+      });
+
+      document.getElementById('checkForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          const data = Object.fromEntries(new FormData(event.target).entries());
+          const result = runCheck(data.project);
+          document.getElementById('checkResult').textContent = JSON.stringify(result, null, 2);
+          renderAll();
+        } catch (error) {
+          document.getElementById('checkResult').textContent = String(error.message || error);
+        }
+      });
+
+      document.getElementById('mintForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          const data = Object.fromEntries(new FormData(event.target).entries());
+          const result = runMint(data.project, data.stage || 'PUBLIC');
+          document.getElementById('mintResult').textContent = JSON.stringify(result, null, 2);
+          renderAll();
+        } catch (error) {
+          document.getElementById('mintResult').textContent = String(error.message || error);
+        }
+      });
+
+      document.getElementById('pipelineForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          const data = Object.fromEntries(new FormData(event.target).entries());
+          const result = runPipeline(data.project, data.stage || 'PUBLIC');
+          document.getElementById('pipelineResult').textContent = JSON.stringify(result, null, 2);
+          renderAll();
+        } catch (error) {
+          document.getElementById('pipelineResult').textContent = String(error.message || error);
+        }
+      });
+
+      document.getElementById('runWlBtn').addEventListener('click', () => document.getElementById('wlForm').requestSubmit());
+      document.getElementById('runCheckBtn').addEventListener('click', () => document.getElementById('checkForm').requestSubmit());
+      document.getElementById('runMintBtn').addEventListener('click', () => document.getElementById('mintForm').requestSubmit());
+      document.getElementById('runPipelineBtn').addEventListener('click', () => document.getElementById('pipelineForm').requestSubmit());
+
+      document.getElementById('refreshSummary').addEventListener('click', renderAll);
+      document.getElementById('refreshAccounts').addEventListener('click', renderAll);
+      document.getElementById('refreshProjects').addEventListener('click', renderAll);
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const payload = {
+          projects: getProjects(),
+          accounts: getAccounts(),
+          submissions: getSubmissions(),
+          eligibility: getEligibility(),
+          mints: getMints()
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'automintnft-export.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!confirm('Reset semua demo data?')) return;
+        localStorage.removeItem(STORAGE_KEYS.accounts);
+        localStorage.removeItem(STORAGE_KEYS.projects);
+        localStorage.removeItem(STORAGE_KEYS.submissions);
+        localStorage.removeItem(STORAGE_KEYS.eligibility);
+        localStorage.removeItem(STORAGE_KEYS.mints);
+        ensureSeed();
+        renderAll();
+      });
+      document.getElementById('clearLogsBtn').addEventListener('click', () => {
+        localStorage.setItem(STORAGE_KEYS.submissions, '[]');
+        localStorage.setItem(STORAGE_KEYS.eligibility, '[]');
+        localStorage.setItem(STORAGE_KEYS.mints, '[]');
+        renderAll();
+      });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderAccounts();
+      renderProjects();
+      renderTables();
+    }
+
+    ensureSeed();
+    bindForms();
+    renderAll();
+  </script>
+</body>
+</html>

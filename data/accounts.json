@@ -1,0 +1,13 @@
+[
+  {
+    "account_id": 1,
+    "label": "main",
+    "wallet_address": "0x0000000000000000000000000000000000000000",
+    "twitter_handle": "",
+    "gmail": "",
+    "discord_user_id": "",
+    "discord_bot_name": "",
+    "status": "active",
+    "notes": "template account"
+  }
+]
