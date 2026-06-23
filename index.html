@@ -3,581 +3,1385 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AutomintNFT</title>
+  <title>AutomintNFT Dashboard</title>
   <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { color-scheme: dark; }
-    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0b1020; color: #e5e7eb; }
-    header, main { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    h1, h2, h3, p { margin: 0 0 12px; }
-    .muted { color: #94a3b8; font-size: 14px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-    .card { background: #121a33; border: 1px solid #24304f; border-radius: 16px; padding: 16px; }
-    input, textarea, select, button { width: 100%; box-sizing: border-box; margin: 6px 0 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #e5e7eb; }
-    button { cursor: pointer; border: none; background: linear-gradient(135deg, #2563eb, #7c3aed); font-weight: 700; }
-    button.secondary { background: #1f2937; }
-    button.ghost { background: transparent; border: 1px solid #334155; }
-    pre { margin: 0; padding: 12px; overflow-x: auto; background: #0f172a; border: 1px solid #24304f; border-radius: 12px; white-space: pre-wrap; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .list { display: grid; gap: 10px; }
-    .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #1f2a44; color: #cbd5e1; font-size: 12px; margin-right: 6px; }
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { border-bottom: 1px solid #24304f; padding: 8px 6px; text-align: left; vertical-align: top; }
-    .table th { color: #cbd5e1; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-    .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
-    .topbar .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .small { font-size: 13px; }
-    .good { color: #86efac; }
-    .bad { color: #fca5a5; }
-    .warn { color: #fcd34d; }
-    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .footer { max-width: 1200px; margin: 0 auto; padding: 0 24px 32px; color: #94a3b8; font-size: 13px; }
+    body {
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: #070b18;
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 3px; }
+
+    /* ── Layout ── */
+    .container { max-width: 1360px; margin: 0 auto; padding: 0 20px; }
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(7,11,24,.82); backdrop-filter: blur(16px);
+      border-bottom: 1px solid #1a2440;
+      padding: 14px 0;
+    }
+    header .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo h1 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg,#60a5fa,#a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .logo .muted { font-size: 13px; color: #64748b; -webkit-text-fill-color: #64748b; }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    main { padding: 24px 0 40px; }
+
+    /* ── Dashboard Grid ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+    .grid-full { grid-column: 1 / -1; }
+
+    /* ── Cards ── */
+    .card {
+      background: #0f162a;
+      border: 1px solid #1a2440;
+      border-radius: 14px;
+      padding: 18px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .card:hover { border-color: #2a3a60; }
+    .card.accent {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37,99,235,.15);
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px; gap: 8px; flex-wrap: wrap;
+    }
+    .card-header h2 { font-size: 15px; font-weight: 600; color: #c8d0e0; }
+    .card-body { display: grid; gap: 6px; }
+
+    /* ── Summary Stats ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+    .stat-card {
+      background: #0d1528; border: 1px solid #1a2440; border-radius: 12px;
+      padding: 14px; text-align: center; transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover { border-color: #2a3a60; transform: translateY(-1px); }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: #f0f4ff; line-height: 1.3; }
+    .stat-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-card .sub { font-size: 11px; color: #475569; margin-top: 4px; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 8px; }
+    .form-label { font-size: 11px; color: #64748b; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: .04em; }
+    input, textarea, select {
+      width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid #1e2a45; background: #0a1022; color: #e5e7eb;
+      font-size: 14px; font-family: inherit; transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: #3b5cbf; box-shadow: 0 0 0 2px rgba(59,92,191,.2);
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+    /* ── Buttons ── */
+    button, .btn {
+      position: relative; cursor: pointer; border: none; border-radius: 10px;
+      padding: 9px 16px; font-size: 13px; font-weight: 600; font-family: inherit;
+      transition: opacity .2s, transform .1s, box-shadow .2s, background .2s;
+    }
+    button:active { transform: scale(.97); }
+    button:disabled, .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 0 18px rgba(37,99,235,.3); }
+    .btn-secondary { background: #1a2440; color: #c8d0e0; border: 1px solid #2a3550; }
+    .btn-secondary:hover:not(:disabled) { background: #223050; }
+    .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #1e2a45; }
+    .btn-ghost:hover:not(:disabled) { background: #0d1528; color: #c8d0e0; }
+    .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 8px; }
+    .btn-danger { background: linear-gradient(135deg,#dc2626,#b91c1c); color: #fff; }
+    .btn-success { background: linear-gradient(135deg,#16a34a,#15803d); color: #fff; }
+    .btn-icon { display: inline-flex; align-items: center; gap: 6px; }
+
+    /* ── Loading Spinner ── */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #2a3550; border-top-color: #60a5fa; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay { position: absolute; inset: 0; background: rgba(7,11,24,.6); border-radius: 14px; display: flex; align-items: center; justify-content: center; z-index: 5; backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .25s; }
+    .loading-overlay.active { opacity: 1; pointer-events: all; }
+    .card { position: relative; }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed; bottom: 20px; right: 20px; z-index: 999;
+      display: grid; gap: 8px; max-width: 380px; width: 100%;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: all; padding: 12px 16px; border-radius: 12px;
+      font-size: 14px; line-height: 1.4;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      display: flex; align-items: flex-start; gap: 10px;
+      animation: toastIn .3s ease-out;
+      backdrop-filter: blur(8px);
+    }
+    .toast.success { background: rgba(22,163,74,.92); color: #f0fdf4; border: 1px solid #22c55e; }
+    .toast.error { background: rgba(220,38,38,.92); color: #fef2f2; border: 1px solid #ef4444; }
+    .toast.info { background: rgba(37,99,235,.92); color: #eff6ff; border: 1px solid #3b82f6; }
+    .toast.warning { background: rgba(202,138,4,.92); color: #fefce8; border: 1px solid #eab308; }
+    .toast .toast-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .toast .toast-text { flex: 1; word-break: break-word; }
+    .toast .toast-close { cursor: pointer; opacity: .6; background: none; border: none; color: inherit; font-size: 16px; padding: 2px; flex-shrink: 0; }
+    .toast .toast-close:hover { opacity: 1; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    .toast.removing { animation: toastOut .25s ease-in forwards; }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(40px); } }
+
+    /* ── Tags / Pills ── */
+    .pill {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 500; margin-right: 4px; margin-bottom: 2px;
+    }
+    .pill-blue { background: rgba(37,99,235,.2); color: #93c5fd; }
+    .pill-green { background: rgba(22,163,74,.2); color: #86efac; }
+    .pill-yellow { background: rgba(202,138,4,.2); color: #fde68a; }
+    .pill-red { background: rgba(220,38,38,.2); color: #fca5a5; }
+    .pill-gray { background: #1a2440; color: #94a3b8; }
+
+    /* ── Results / Pre Boxes ── */
+    .result-box {
+      margin-top: 10px; padding: 12px; border-radius: 10px;
+      background: #0a1022; border: 1px solid #1a2440;
+      font-size: 13px; line-height: 1.5; max-height: 380px; overflow: auto;
+    }
+    .result-box pre { margin: 0; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; color: #c8d0e0; }
+    .result-card {
+      background: #0d1528; border: 1px solid #1e2a45; border-radius: 10px;
+      padding: 12px; margin-top: 8px;
+    }
+    .result-card .field { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #141e34; font-size: 13px; }
+    .result-card .field:last-child { border: none; }
+    .result-card .field .key { color: #64748b; }
+    .result-card .field .val { color: #e5e7eb; text-align: right; max-width: 60%; word-break: break-all; }
+
+    /* ── Checklist ── */
+    .checkbox-group { display: grid; gap: 6px; margin: 8px 0; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      background: #0a1022; border: 1px solid #1a2440; border-radius: 8px;
+      cursor: pointer; transition: background .15s; font-size: 13px;
+    }
+    .checkbox-item:hover { background: #0f162a; }
+    .checkbox-item input[type="checkbox"] { width: auto; margin: 0; accent-color: #3b82f6; }
+    .checkbox-item label { cursor: pointer; flex: 1; }
+
+    /* ── Empty State ── */
+    .empty-state { text-align: center; padding: 20px; color: #475569; font-size: 14px; }
+    .empty-state .icon { font-size: 36px; margin-bottom: 8px; opacity: .4; }
+
+    /* ── Monospace ── */
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+    /* ── Misc ── */
+    .mt-8 { margin-top: 8px; }
+    .mb-8 { margin-bottom: 8px; }
+    .flex { display: flex; }
+    .gap-8 { gap: 8px; }
+    .gap-4 { gap: 4px; }
+    .items-center { align-items: center; }
+    .text-muted { color: #64748b; }
+    .text-sm { font-size: 13px; }
+    .text-xs { font-size: 11px; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab {
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all .15s; border: 1px solid transparent;
+      background: transparent; color: #64748b;
+    }
+    .tab:hover { color: #c8d0e0; background: #0d1528; }
+    .tab.active { background: #1a2440; border-color: #2a3550; color: #e5e7eb; }
+
+    /* ── Responsive ── */
+    @media (max-width: 720px) {
+      .row, .row3, .row4 { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      header .container { flex-direction: column; align-items: flex-start; }
+      .toast-container { left: 12px; right: 12px; max-width: none; }
+    }
+
+    /* ── Pulse dot ── */
+    .pulse-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 6px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+    /* ── Collapsible Section ── */
+    .collapsible .toggle { cursor: pointer; user-select: none; }
+    .collapsible .toggle:hover { opacity: .8; }
+    .collapsible .body { overflow: hidden; transition: max-height .3s ease; }
+    .collapsible .body.collapsed { max-height: 0 !important; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="topbar">
+
+<!-- ── Toast Container ── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── Header ── -->
+<header>
+  <div class="container">
+    <div class="logo">
+      <span style="font-size:24px;">⚡</span>
       <div>
         <h1>AutomintNFT</h1>
-        <div class="muted">Website WL submit • eligibility check • mint pipeline • account manager</div>
-      </div>
-      <div class="actions">
-        <button class="secondary" id="exportBtn">Export JSON</button>
-        <button class="ghost" id="resetBtn">Reset demo data</button>
+        <div class="muted">Dashboard · WL · Eligibility · Mint</div>
       </div>
     </div>
-  </header>
+    <div class="header-actions">
+      <button class="btn-secondary btn-sm btn-icon" id="refreshAllBtn">⟳ Refresh All</button>
+      <button class="btn-ghost btn-sm btn-icon" id="exportBtn">⬇ Export</button>
+      <span id="statusDot" class="pulse-dot" style="background:#22c55e" title="Server status"></span>
+    </div>
+  </div>
+</header>
 
-  <main class="grid">
-    <section class="card">
-      <div class="section-head">
-        <h2>Summary</h2>
-        <button class="secondary small" id="refreshSummary">Refresh</button>
+<main>
+  <div class="container grid">
+
+    <!-- ── Summary ── -->
+    <section class="card grid-full">
+      <div class="card-header">
+        <h2>📊 Ringkasan</h2>
+        <button class="btn-secondary btn-sm" id="refreshSummary">⟳ Refresh</button>
       </div>
-      <div id="summaryBox"></div>
+      <div class="card-body" id="summaryBox">
+        <div class="stat-grid"><div class="stat-card"><div class="spinner"></div></div></div>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2>Account Manager</h2>
-        <button class="secondary small" id="refreshAccounts">Refresh</button>
+    <!-- ── Quick Link ── -->
+    <section class="card accent">
+      <div class="card-header">
+        <h2>🔗 Quick Link</h2>
+        <button class="btn-secondary btn-sm" id="resolveBtn">Resolve</button>
       </div>
-      <form id="accountForm">
-        <div class="row">
-          <input name="account_id" type="number" placeholder="Account ID" required>
-          <input name="label" placeholder="Label">
+      <div class="card-body">
+        <form id="resolveForm">
+          <div class="form-group">
+            <label class="form-label">OpenSea / Project URL</label>
+            <input name="target_url" placeholder="https://opensea.io/collection/..." required>
+          </div>
+          <button class="btn-primary" type="submit">🔍 Resolve Target</button>
+        </form>
+        <div id="resolvedBox" class="mt-8">
+          <div class="empty-state"><div class="icon">🔗</div>Paste link lalu Resolve.</div>
         </div>
-        <div class="row">
-          <input name="wallet_address" placeholder="Wallet address">
-          <input name="twitter_handle" placeholder="Twitter handle">
+        <div class="row mt-8" id="quickActions" style="display:none;">
+          <button class="btn-secondary btn-icon" id="quickCheckBtn">✓ Check</button>
+          <button class="btn-secondary btn-icon" id="quickMintBtn">🪙 Mint</button>
         </div>
-        <div class="row">
-          <input name="gmail" placeholder="Gmail">
-          <input name="discord_user_id" placeholder="Discord user ID">
-        </div>
-        <div class="row">
-          <input name="discord_bot_name" placeholder="Discord bot name">
-          <input name="status" placeholder="Status" value="active">
-        </div>
-        <textarea name="notes" placeholder="Notes"></textarea>
-        <button type="submit">Save Account</button>
-      </form>
-      <div id="accountsBox" class="list"></div>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2>Projects</h2>
-        <button class="secondary small" id="refreshProjects">Refresh</button>
+    <!-- ── Quick Actions Tab ── -->
+    <section class="card grid-full">
+      <div class="tabs" id="actionTabs">
+        <button class="tab active" data-tab="global">Global Settings</button>
+        <button class="tab" data-tab="accounts">Accounts</button>
+        <button class="tab" data-tab="project">Project Settings</button>
+        <button class="tab" data-tab="wl">WL Submit</button>
+        <button class="tab" data-tab="check">Eligibility</button>
+        <button class="tab" data-tab="mint">Mint</button>
+        <button class="tab" data-tab="pipeline">Mint All</button>
       </div>
-      <form id="projectForm">
-        <div class="row">
-          <input name="slug" value="kuongate" placeholder="Slug" required>
-          <input name="name" value="Kuongate" placeholder="Name">
+
+      <!-- Global Settings -->
+      <div class="tab-panel" id="panel-global">
+        <div class="card-header"><h2>🌐 Global Settings</h2><button class="btn-secondary btn-sm" id="reloadSettingsBtn">⟳ Reload</button></div>
+        <form id="globalSettingsForm">
+          <div class="row3">
+            <div class="form-group">
+              <label class="form-label">Wallet Source</label>
+              <input name="wallet_source" value="manual">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Default Mint Accounts</label>
+              <input name="default_mint_accounts" type="number" min="1" value="1">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label class="form-label">Default RPC URL</label>
+              <input name="global_rpc_default_url" placeholder="https://mainnet.infura.io/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">RPC Fallbacks (comma)</label>
+              <input name="global_rpc_fallback_urls" placeholder="url1, url2">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label class="form-label">Proxy URL</label>
+              <input name="global_proxy_default_url" placeholder="http://user:pass@host:port">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proxy Rotate</label>
+              <select name="global_proxy_rotate">
+                <option value="false">False</option>
+                <option value="true">True</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:8px 0;">
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="global_proxy_enabled" name="global_proxy_enabled" type="checkbox">
+              <label for="global_proxy_enabled">Proxy enabled</label>
+            </div>
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="ui_allow_user_edit" name="ui_allow_user_edit" type="checkbox" checked>
+              <label for="ui_allow_user_edit">User edit</label>
+            </div>
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="ui_persist_to_local_storage" name="ui_persist_to_local_storage" type="checkbox" checked>
+              <label for="ui_persist_to_local_storage">Local storage</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label class="form-label">Captcha Provider</label>
+              <input name="global_captcha_provider" value="2captcha">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Captcha API Key</label>
+              <input name="global_captcha_api_key" placeholder="key...">
+            </div>
+          </div>
+          <button class="btn-primary mt-8" type="submit">💾 Save Global Settings</button>
+        </form>
+      </div>
+
+      <!-- Accounts -->
+      <div class="tab-panel" id="panel-accounts" style="display:none;">
+        <div class="card-header"><h2>👤 Account Manager</h2><button class="btn-secondary btn-sm" id="refreshAccounts">⟳ Refresh</button></div>
+        <form id="accountForm">
+          <div class="row4">
+            <div class="form-group">
+              <label class="form-label">Account ID</label>
+              <input name="account_id" type="number" placeholder="Auto if empty">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Label</label>
+              <input name="label" placeholder="main, backup...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <input name="status" value="active" placeholder="active / suspended">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label class="form-label">Wallet Address</label>
+              <input name="wallet_address" placeholder="0x...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Twitter Handle</label>
+              <input name="twitter_handle" placeholder="@username">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label class="form-label">Gmail</label>
+              <input name="gmail" placeholder="email@gmail.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discord</label>
+              <input name="discord_user_id" placeholder="user / bot name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" placeholder="Catatan..."></textarea>
+          </div>
+          <button class="btn-primary" type="submit">💾 Save Account</button>
+        </form>
+
+        <!-- CSV Import -->
+        <div class="card-header mt-8" style="margin-bottom:8px;"><h2 style="font-size:13px;">📥 CSV Import Akun</h2></div>
+        <div class="row" style="margin-bottom:8px;">
+          <div class="form-group">
+            <label class="form-label">CSV File (kolom: wallet,witter,label,gmail,discord,notes)</label>
+            <input type="file" id="csvFileInput" accept=".csv,.txt">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px;">
+            <button class="btn-secondary btn-sm" id="csvImportBtn">⬆ Import CSV</button>
+            <button class="btn-ghost btn-sm" id="csvTemplateBtn">📋 Template</button>
+          </div>
         </div>
-        <div class="row">
-          <input name="chain" value="ethereum" placeholder="Chain">
-          <input name="wl_url" value="https://kuongate.xyz" placeholder="WL URL">
+        <div id="csvImportResult" class="text-xs text-muted"></div>
+
+        <div id="accountsBox" class="mt-8"></div>
+      </div>
+
+      <!-- Project Settings -->
+      <div class="tab-panel" id="panel-project" style="display:none;">
+        <div class="card-header"><h2>⚙️ Project Settings</h2><button class="btn-secondary btn-sm" id="loadProjectBtn">⟳ Load Project</button></div>
+        <form id="projectSettingsForm">
+          <div class="row3">
+            <div class="form-group"><label class="form-label">Slug</label><input name="slug" value="kuongate" required></div>
+            <div class="form-group"><label class="form-label">Name</label><input name="name" value="Kuongate"></div>
+            <div class="form-group"><label class="form-label">Chain</label><input name="chain" value="ethereum"></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">WL URL</label><input name="wl_url" value="https://kuongate.xyz"></div>
+            <div class="form-group"><label class="form-label">Adapter</label><input name="adapter" value="kuongate"></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Submit Path</label><input name="submit_path" value="/api/allowlist/submit"></div>
+            <div class="form-group"><label class="form-label">Required Fields</label><input name="required_fields" placeholder="twitter_handle, share_link"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Field Map JSON</label><textarea class="mono" name="field_map" placeholder='{"username":"twitter_handle"}'></textarea></div>
+
+          <div class="card-header" style="margin-top:10px;"><h2 style="font-size:13px;">🎯 Mint Config</h2></div>
+          <div class="row4">
+            <div class="form-group"><label class="form-label">Provider</label><input name="mint_provider" value="seadrop"></div>
+            <div class="form-group"><label class="form-label">Chain</label><input name="mint_chain" value="ethereum"></div>
+            <div class="form-group"><label class="form-label">Quantity</label><input name="mint_quantity" type="number" min="1" value="1"></div>
+            <div class="form-group"><label class="form-label">Value (wei)</label><input name="mint_value_wei" value="0"></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Collection Slug</label><input name="mint_collection_slug" placeholder="..."></div>
+            <div class="form-group"><label class="form-label">Contract Address</label><input name="mint_contract_address" placeholder="0x..."></div>
+          </div>
+          <div class="row4">
+            <div class="form-group"><label class="form-label">Mint Function</label><input name="mint_function" value="mint"></div>
+            <div class="form-group"><label class="form-label">Qty Field</label><input name="mint_quantity_field" value="quantity"></div>
+            <div class="form-group"><label class="form-label">Price Field</label><input name="mint_price_field" value="value"></div>
+            <div class="form-group"><label class="form-label">Recipient Field</label><input name="mint_recipient_field" value="recipient"></div>
+            <div class="form-group"><label class="form-label">Recipient Mode</label><input name="mint_recipient_mode" value="sender"></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="mint_allow_user_edit" name="mint_allow_user_edit" type="checkbox" checked>
+              <label for="mint_allow_user_edit">Allow user edit</label>
+            </div>
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="seadrop_enabled" name="seadrop_enabled" type="checkbox" checked>
+              <label for="seadrop_enabled">SeaDrop enabled</label>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Mint Overrides JSON</label><textarea class="mono" name="mint_tx_overrides" placeholder='{}'></textarea></div>
+
+          <div class="card-header" style="margin-top:10px;"><h2 style="font-size:13px;">🌊 SeaDrop</h2></div>
+          <div class="row3">
+            <div class="form-group"><label class="form-label">Collection Slug</label><input name="seadrop_collection_slug"></div>
+            <div class="form-group"><label class="form-label">Chain</label><input name="seadrop_chain" value="ethereum"></div>
+            <div class="form-group"><label class="form-label">Default Qty</label><input name="seadrop_mint_quantity_default" type="number" min="1" value="1"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Slippage</label><input name="seadrop_slippage_tolerance" type="number" step="0.001" value="0.01"></div>
+
+          <div class="card-header" style="margin-top:10px;"><h2 style="font-size:13px;">🔌 RPC · Proxy · Captcha</h2></div>
+          <div class="row3">
+            <div class="form-group"><label class="form-label">RPC Name</label><input name="rpc_name" value="default"></div>
+            <div class="form-group"><label class="form-label">RPC URL</label><input name="rpc_url"></div>
+            <div class="form-group"><label class="form-label">Chain ID</label><input name="rpc_chain_id" value="1"></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Proxy URL</label><input name="project_proxy_url" placeholder="http://..."></div>
+            <div class="form-group"><label class="form-label">Rotate</label><select name="project_proxy_rotate"><option value="false">False</option><option value="true">True</option></select></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div class="checkbox-item" style="border:none;background:transparent;padding:0;">
+              <input id="project_proxy_enabled" name="project_proxy_enabled" type="checkbox">
+              <label for="project_proxy_enabled">Enabled</label>
+            </div>
+          </div>
+          <div class="row3">
+            <div class="form-group"><label class="form-label">Captcha Provider</label><input name="captcha_provider" value="2captcha"></div>
+            <div class="form-group"><label class="form-label">API Key</label><input name="captcha_api_key"></div>
+            <div class="form-group"><label class="form-label">Sitekey</label><input name="captcha_sitekey"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Stages JSON</label><textarea class="mono" name="stages" placeholder='[{"name":"PUBLIC","stage_type":"PUBLIC","open":true,"eligible":true}]'></textarea></div>
+          <button class="btn-primary mt-8" type="submit">💾 Save Project</button>
+        </form>
+        <div id="projectsBox" class="mt-8"></div>
+      </div>
+
+      <!-- WL Submit -->
+      <div class="tab-panel" id="panel-wl" style="display:none;">
+        <div class="card-header"><h2>📝 WL Submit</h2><button class="btn-secondary btn-sm" id="runWlBtn">▶ Run WL</button></div>
+        <form id="wlForm">
+          <div class="form-group"><label class="form-label">Project</label><input name="project" value="kuongate" required></div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Wallet Address</label><input name="wallet_address" placeholder="0x..."></div>
+            <div class="form-group"><label class="form-label">Twitter Handle</label><input name="twitter_handle" placeholder="@..."></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Share Link</label><input name="share_link" placeholder="https://..."></div>
+            <div class="form-group"><label class="form-label">Image Path</label><input name="image" placeholder="optional"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Note</label><textarea name="note" placeholder="Catatan..."></textarea></div>
+          <button class="btn-primary" type="submit">📤 Submit WL</button>
+        </form>
+        <div id="wlResult" class="result-box mt-8"><div class="empty-state">Belum ada hasil.</div></div>
+      </div>
+
+      <!-- Eligibility -->
+      <div class="tab-panel" id="panel-check" style="display:none;">
+        <div class="card-header"><h2>✓ Eligibility Check</h2><button class="btn-secondary btn-sm" id="runCheckBtn">▶ Run Check</button></div>
+        <form id="checkForm">
+          <div class="form-group"><label class="form-label">Target URL (optional)</label><input name="target_url" placeholder="https://opensea.io/collection/..."></div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Project</label><input name="project" value="kuongate"></div>
+            <div><br><button class="btn-primary" type="submit">✓ Check Eligibility</button></div>
+          </div>
+        </form>
+        <div id="checkResult" class="result-box mt-8"><div class="empty-state">Belum ada hasil.</div></div>
+      </div>
+
+      <!-- Mint -->
+      <div class="tab-panel" id="panel-mint" style="display:none;">
+        <div class="card-header"><h2>🪙 Mint</h2><button class="btn-secondary btn-sm" id="runMintBtn">▶ Run Mint</button></div>
+        <form id="mintForm">
+          <div class="form-group"><label class="form-label">Target URL (optional)</label><input name="target_url" placeholder="https://opensea.io/collection/..."></div>
+          <div class="row3">
+            <div class="form-group"><label class="form-label">Project</label><input name="project" value="kuongate"></div>
+            <div class="form-group"><label class="form-label">Wallet</label><select name="wallet_address" id="mintWalletSelect"><option value="">— Select —</option></select></div>
+            <div class="form-group"><label class="form-label">Quantity</label><input name="quantity" type="number" min="1" value="1"></div>
+          </div>
+          <button class="btn-primary" type="submit">🪙 Build Mint Payload</button>
+        </form>
+        <div id="mintResult" class="result-box mt-8"><div class="empty-state">Belum ada hasil.</div></div>
+      </div>
+
+      <!-- Mint All -->
+      <div class="tab-panel" id="panel-pipeline" style="display:none;">
+        <div class="card-header"><h2>🚀 Mint All</h2>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-secondary btn-sm" id="runMintAllBtn">▶ Run All</button>
+            <span id="pipelineLiveDot" class="pulse-dot" style="display:none;background:#f59e0b;" title="Pipeline running"></span>
+          </div>
         </div>
-        <div class="row">
-          <input name="adapter" value="kuongate" placeholder="Adapter">
-          <input name="submit_path" value="/api/allowlist/submit" placeholder="Submit path">
+        <form id="pipelineForm">
+          <div class="form-group"><label class="form-label">Target URL (optional)</label><input name="target_url" placeholder="https://opensea.io/collection/..."></div>
+          <div class="row">
+            <div class="form-group"><label class="form-label">Project</label><input name="project" value="kuongate"></div>
+            <div class="form-group"><label class="form-label">Limit Accounts (0 = all)</label><input name="accounts" type="number" min="0" value="0"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Pilih Akun (kosong = semua valid)</label></div>
+          <div id="pipelineAccounts" class="checkbox-group"></div>
+          <button class="btn-primary mt-8" type="submit">🚀 Mint All Accounts</button>
+        </form>
+        <div id="pipelineLog" class="result-box mt-8" style="max-height:300px;font-family:ui-monospace,monospace;font-size:12px;display:none;">
+          <div id="pipelineLogContent"></div>
         </div>
-        <textarea name="required_fields" placeholder="Required fields (comma separated)">twitter_handle,share_link</textarea>
-        <button type="submit">Save Project</button>
-      </form>
-      <div id="projectsBox" class="list"></div>
+        <div id="pipelineResult" class="result-box mt-8"><div class="empty-state">Belum ada hasil.</div></div>
+        <div id="pipelineProgress" class="mt-8 text-xs text-muted" style="display:none;"></div>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2>WL Submit</h2>
-        <button class="secondary small" id="runWlBtn">Run WL</button>
+    <!-- ── Data Dump (collapsible) ── -->
+    <section class="card grid-full collapsible">
+      <div class="card-header toggle" onclick="toggleDump()" style="cursor:pointer;">
+        <h2>📋 Debug Dump <span id="dumpArrow">▼</span></h2>
+        <button class="btn-secondary btn-sm" id="reloadDumpBtn" onclick="event.stopPropagation();renderDump()">⟳</button>
       </div>
-      <form id="wlForm">
-        <div class="row">
-          <input name="project" value="kuongate" placeholder="Project slug" required>
-          <input name="select_by" value="twitter_handle" placeholder="Select by (wallet_address/twitter_handle)">
-        </div>
-        <div class="row">
-          <input name="select_value" placeholder="Wallet or Twitter handle" required>
-          <input name="share_link" placeholder="Share link">
-        </div>
-        <input name="image" placeholder="Image path (optional)">
-        <textarea name="note" placeholder="Note"></textarea>
-        <button type="submit">Submit WL</button>
-      </form>
-      <pre id="wlResult">Belum ada hasil.</pre>
+      <div class="body" id="dumpBody">
+        <pre id="dataDump" class="result-box" style="max-height:300px;">Loading...</pre>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-head">
-        <h2>Eligibility</h2>
-        <button class="secondary small" id="runCheckBtn">Run Check</button>
-      </div>
-      <form id="checkForm">
-        <div class="row">
-          <input name="project" value="kuongate" placeholder="Project slug" required>
-          <button type="submit">Check eligibility</button>
-        </div>
-      </form>
-      <pre id="checkResult">Belum ada hasil.</pre>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <h2>Mint</h2>
-        <button class="secondary small" id="runMintBtn">Run Mint</button>
-      </div>
-      <form id="mintForm">
-        <div class="row">
-          <input name="project" value="kuongate" placeholder="Project slug" required>
-          <input name="stage" value="PUBLIC" placeholder="Stage">
-        </div>
-        <button type="submit">Mint pipeline</button>
-      </form>
-      <pre id="mintResult">Belum ada hasil.</pre>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <h2>Pipeline</h2>
-        <button class="secondary small" id="runPipelineBtn">Run Pipeline</button>
-      </div>
-      <form id="pipelineForm">
-        <div class="row">
-          <input name="project" value="kuongate" placeholder="Project slug" required>
-          <input name="stage" value="PUBLIC" placeholder="Stage">
-        </div>
-        <button type="submit">Check + Mint</button>
-      </form>
-      <pre id="pipelineResult">Belum ada hasil.</pre>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <h2>Data Store</h2>
-        <button class="secondary small" id="clearLogsBtn">Clear results</button>
-      </div>
-      <pre id="dataDump">...</pre>
-    </section>
-  </main>
-
-  <div class="footer">
-    Vercel-ready static dashboard. Data disimpan di browser localStorage untuk demo/operasional ringan.
   </div>
 
-  <script>
-    const STORAGE_KEYS = {
-      accounts: 'automintnft.accounts',
-      projects: 'automintnft.projects',
-      submissions: 'automintnft.submissions',
-      eligibility: 'automintnft.eligibility',
-      mints: 'automintnft.mints'
-    };
+  <div class="container" style="padding:16px 20px 30px;color:#475569;font-size:13px;">
+    ⚡ AutomintNFT · backend webapp.py · data tersimpan di config/settings.yaml
+  </div>
+</main>
 
-    const DEFAULT_PROJECTS = [
-      {
-        slug: 'kuongate',
-        name: 'Kuongate',
-        chain: 'ethereum',
-        wl_url: 'https://kuongate.xyz',
-        adapter: 'kuongate',
-        submit_path: '/api/allowlist/submit',
-        required_fields: ['twitter_handle', 'share_link'],
-        field_map: {
-          username: 'twitter_handle',
-          share_link: 'share_link',
-          wallet: 'wallet_address',
-          email: 'gmail',
-          project_name: 'project_name',
-          note: 'note',
-          image: 'image'
+<script>
+  /* ═══════════════════════════════════════════════════
+     AutomintNFT Dashboard — Refined
+     ═══════════════════════════════════════════════════ */
+
+  const API = {
+    summary: '/api/summary',
+    settings: '/api/settings',
+    accounts: '/api/accounts',
+    project: '/api/project',
+    account: '/api/account',
+    resolve: '/api/resolve',
+    wl: '/api/wl',
+    check: '/api/check',
+    mint: '/api/mint',
+    mintAll: '/api/mint_all',
+    pipelineStart: '/api/pipeline/start',
+    pipelineEvents: '/api/pipeline/events'
+  };
+
+  const state = { settings: null, summary: null, resolvedTarget: null, lastWl: null, lastCheck: null, lastMint: null, lastMintAll: null };
+  let loadingCount = 0;
+
+  /* ── Toast System ── */
+  function toast(message, type = 'info', duration = 4000) {
+    const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+    const container = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span>
+      <span class="toast-text">${message}</span>
+      <button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+    container.appendChild(el);
+    if (duration > 0) {
+      setTimeout(() => { el.classList.add('removing'); setTimeout(() => el.remove(), 260); }, duration);
+    }
+  }
+
+  /* ── Loading Overlay ── */
+  function showLoading(el) { if (el) { el.style.opacity = '1'; el.style.pointerEvents = 'all'; } }
+  function hideLoading(el) { if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; } }
+
+  function withLoading(container, fn) {
+    const overlay = container.querySelector('.loading-overlay');
+    showLoading(overlay);
+    return fn().finally(() => hideLoading(overlay));
+  }
+
+  function addLoading(container) {
+    if (!container.querySelector('.loading-overlay')) {
+      const div = document.createElement('div'); div.className = 'loading-overlay';
+      div.innerHTML = '<div class="spinner"></div>';
+      container.appendChild(div);
+    }
+    return container;
+  }
+
+  /* ── API Helpers ── */
+  async function apiGet(url) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const d = await res.json(); msg = d.error || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+    return await res.json();
+  }
+
+  async function apiPost(url, payload) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    let data = null;
+    try { data = await res.json(); } catch (_) { throw new Error(`POST gagal: ${res.status}`); }
+    if (!res.ok) throw new Error(data.error || `POST gagal: ${res.status}`);
+    return data;
+  }
+
+  async function safeApi(getter, label) {
+    try { return await getter(); }
+    catch (err) { toast(`${label}: ${err.message}`, 'error'); throw err; }
+  }
+
+  /* ── Helpers ── */
+  function boolValue(v) { return v === true || String(v).toLowerCase() === 'true'; }
+  function csvFromArray(items) { return Array.isArray(items) ? items.join(', ') : ''; }
+  function tryJson(v, fb) { try { return JSON.stringify(v ?? fb, null, 2); } catch(_) { return JSON.stringify(fb, null, 2); } }
+  function parseJsonText(t, fb = {}) { const v = String(t || '').trim(); return v ? JSON.parse(v) : fb; }
+  function shortAddr(addr) { return addr ? addr.slice(0, 8) + '…' : ''; }
+
+  function projectBySlug(slug) {
+    const list = state.settings?.projects_list || [];
+    return list.find(p => p.slug === slug) || null;
+  }
+
+  /* ── Tab System ── */
+  function initTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+        tab.classList.add('active');
+        const panel = document.getElementById('panel-' + tab.dataset.tab);
+        if (panel) panel.style.display = '';
+      });
+    });
+  }
+
+  /* ── Dump Toggle ── */
+  function toggleDump() {
+    const body = document.getElementById('dumpBody');
+    body.classList.toggle('collapsed');
+    document.getElementById('dumpArrow').textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+  }
+
+  /* ── Render: Summary ── */
+  function renderSummary() {
+    const s = state.summary || {};
+    document.getElementById('summaryBox').innerHTML = `
+      <div class="stat-grid">
+        <div class="stat-card"><div class="value">${s.project_count || 0}</div><div class="label">Projects</div></div>
+        <div class="stat-card"><div class="value">${s.account_count || 0}</div><div class="label">Accounts</div></div>
+        <div class="stat-card"><div class="value">${(state.settings?.projects_list || []).length}</div><div class="label">Loaded</div></div>
+        <div class="stat-card"><div class="value">${(s.features || []).length}</div><div class="label">Features</div><div class="sub">${(s.features || []).join(', ')}</div></div>
+      </div>`;
+  }
+
+  /* ── Render: Resolved ── */
+  function renderResolved() {
+    const box = document.getElementById('resolvedBox');
+    const t = state.resolvedTarget;
+    if (!t || !t.slug) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">🔗</div>Paste link lalu Resolve.</div>';
+      document.getElementById('quickActions').style.display = 'none';
+      return;
+    }
+    box.innerHTML = `
+      <div class="result-card">
+        <div class="field"><span class="key">Slug</span><span class="val"><span class="pill pill-blue">${t.slug}</span></span></div>
+        <div class="field"><span class="key">Type</span><span class="val"><span class="pill pill-${t.target_type === 'drop' ? 'green' : t.target_type === 'collection' ? 'blue' : 'gray'}">${t.target_type || '-'}</span></span></div>
+        <div class="field"><span class="key">Chain</span><span class="val">${t.chain || '-'}</span></div>
+        <div class="field"><span class="key">Source</span><span class="val">${t.source || '-'}</span></div>
+        ${t.contract_address ? `<div class="field"><span class="key">Contract</span><span class="val mono" style="font-size:11px;">${shortAddr(t.contract_address)}${t.contract_address.slice(8)}</span></div>` : ''}
+        ${t.token_id ? `<div class="field"><span class="key">Token ID</span><span class="val">${t.token_id}</span></div>` : ''}
+        ${t.wl_url ? `<div class="field"><span class="key">WL URL</span><span class="val mono" style="font-size:11px;">${t.wl_url}</span></div>` : ''}
+        ${t.notes && t.notes.length ? `<div class="field"><span class="key">Notes</span><span class="val text-sm">${t.notes.join('; ')}</span></div>` : ''}
+      </div>`;
+    document.getElementById('quickActions').style.display = '';
+  }
+
+  /* ── Render: Accounts ── */
+  function renderAccounts() {
+    const box = document.getElementById('accountsBox');
+    const accounts = state.settings?.accounts || [];
+    if (!accounts.length) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">👤</div>Belum ada akun.</div>';
+      return;
+    }
+    box.innerHTML = accounts.map(a => {
+      const status = a.status || 'active';
+      const statusClass = status === 'active' ? 'pill-green' : status === 'suspended' ? 'pill-red' : 'pill-yellow';
+      return `<div class="result-card">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <span class="pill pill-blue">#${a.account_id}</span>
+          <span class="pill ${statusClass}">${status}</span>
+          ${a.label ? `<span class="pill pill-gray">${a.label}</span>` : ''}
+          <button class="btn-danger btn-sm account-delete-btn" data-id="${a.account_id}" style="margin-left:auto;" title="Hapus akun">✕</button>
+        </div>
+        <div class="field"><span class="key">Wallet</span><span class="val mono" style="font-size:11px;">${a.wallet_address ? shortAddr(a.wallet_address) + a.wallet_address.slice(8) : '(none)'}</span></div>
+        <div class="field"><span class="key">Twitter</span><span class="val">${a.twitter_handle || '(none)'}</span></div>
+        <div class="field"><span class="key">Gmail</span><span class="val">${a.gmail || '(none)'}</span></div>
+        ${a.discord_user_id || a.discord_bot_name ? `<div class="field"><span class="key">Discord</span><span class="val">${a.discord_user_id || ''} ${a.discord_bot_name || ''}</span></div>` : ''}
+        ${a.notes ? `<div class="field"><span class="key">Notes</span><span class="val text-sm">${a.notes}</span></div>` : ''}
+      </div>`;
+    }).join('');
+    document.querySelectorAll('.account-delete-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = parseInt(e.target.dataset.id);
+        if (!confirm('Yakin hapus akun #' + id + '?')) return;
+        try {
+          await apiPost(API.account, { _action: 'delete', account_id: id });
+          toast('Akun #' + id + ' dihapus', 'success', 2000);
+          await loadSettings();
+        } catch (err) {
+          toast('Hapus gagal: ' + err.message, 'error');
         }
-      }
-    ];
+      });
+    });
+  }
 
-    const DEFAULT_ACCOUNTS = [
-      {
-        account_id: 1,
-        label: 'main',
-        wallet_address: '0x0000000000000000000000000000000000000000',
-        twitter_handle: '',
-        gmail: '',
-        discord_user_id: '',
-        discord_bot_name: '',
-        status: 'active',
-        notes: 'template account'
-      }
-    ];
+  /* ── Render: Projects ── */
+  function renderProjects() {
+    const box = document.getElementById('projectsBox');
+    const projects = state.settings?.projects_list || [];
+    if (!projects.length) {
+      box.innerHTML = '<div class="empty-state"><div class="icon">⚙️</div>Belum ada proyek.</div>';
+      return;
+    }
+    box.innerHTML = projects.map(p => {
+      const mint = p.mint || {};
+      return `<div class="result-card">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          <span class="pill pill-blue">${p.slug}</span>
+          <span class="pill pill-gray">${p.chain || 'unknown'}</span>
+          <span class="pill pill-gray">${p.adapter || '-'}</span>
+        </div>
+        <div class="field"><span class="key">Name</span><span class="val"><strong>${p.name || p.slug}</strong></span></div>
+        <div class="field"><span class="key">WL</span><span class="val mono text-sm">${p.wl_url || '-'}</span></div>
+        ${p.submit_path ? `<div class="field"><span class="key">Submit</span><span class="val mono text-sm">${p.submit_path}</span></div>` : ''}
+        <div class="field"><span class="key">Required</span><span class="val text-sm">${(p.required_fields || []).join(', ') || '-'}</span></div>
+        <div class="field"><span class="key">Mint</span><span class="val text-sm">${mint.provider || '-'} · qty ${mint.quantity || 1}</span></div>
+      </div>`;
+    }).join('');
+  }
 
-    function read(key, fallback) {
+  /* ── Render: Wallet Select ── */
+  function renderWalletSelect() {
+    const select = document.getElementById('mintWalletSelect');
+    const accounts = (state.settings?.accounts || []).filter(a => a.wallet_address);
+    const current = select.value;
+    select.innerHTML = '<option value="">— Select wallet —</option>' +
+      accounts.map(a => `<option value="${a.wallet_address}">#${a.account_id} ${a.label || ''} (${shortAddr(a.wallet_address)})</option>`).join('');
+    if (current) select.value = current;
+  }
+
+  /* ── Render: Pipeline Accounts ── */
+  function renderPipelineAccounts() {
+    const box = document.getElementById('pipelineAccounts');
+    const accounts = (state.settings?.accounts || []).filter(a => a.wallet_address || a.twitter_handle);
+    if (!accounts.length) {
+      box.innerHTML = '<div class="text-muted text-sm">Belum ada akun valid.</div>';
+      return;
+    }
+    box.innerHTML = accounts.map(a => `
+      <label class="checkbox-item">
+        <input type="checkbox" class="pipeline-account" value="${a.account_id}">
+        <span>#${a.account_id} ${a.label || ''} — ${a.wallet_address ? shortAddr(a.wallet_address) + a.wallet_address.slice(8) : a.twitter_handle || 'no wallet'}</span>
+      </label>
+    `).join('');
+  }
+
+  /* ── Render: Dump ── */
+  function renderDump() {
+    document.getElementById('dataDump').textContent = JSON.stringify({
+      summary: state.summary,
+      settings: state.settings,
+      resolvedTarget: state.resolvedTarget,
+      lastWl: state.lastWl,
+      lastCheck: state.lastCheck,
+      lastMint: state.lastMint,
+      lastMintAll: state.lastMintAll
+    }, null, 2);
+  }
+
+  /* ── Render: Result Formatter ── */
+  function renderResult(data, containerId, type) {
+    const el = document.getElementById(containerId);
+    if (!data) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Belum ada hasil.</div>';
+      return;
+    }
+    if (type === 'check' && (data.rows || data.results)) {
+      const rows = data.rows || [];
+      if (!rows.length) {
+        el.innerHTML = '<div class="empty-state">Tidak ada baris hasil.</div>';
+        return;
+      }
+      el.innerHTML = rows.map(r => `
+        <div class="result-card">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+            <span class="pill pill-${r.eligible === false ? 'red' : r.open ? 'green' : 'yellow'}">${r.eligible === false ? '✕ Not Eligible' : r.open ? '✓ Open' : '⏳ Coming'}</span>
+            <span class="pill pill-blue">${r.stage || r.stage_type || 'PUBLIC'}</span>
+            ${r.account_id ? `<span class="pill pill-gray">#${r.account_id}</span>` : ''}
+          </div>
+          <div class="field"><span class="key">Stage</span><span class="val">${r.stage || r.stage_type || '-'}</span></div>
+          ${r.wallet_address ? `<div class="field"><span class="key">Wallet</span><span class="val mono text-sm">${shortAddr(r.wallet_address)}${r.wallet_address.slice(8)}</span></div>` : ''}
+          ${r.twitter_handle ? `<div class="field"><span class="key">Twitter</span><span class="val">${r.twitter_handle}</span></div>` : ''}
+          ${r.checked_at ? `<div class="field"><span class="key">Checked</span><span class="val text-sm">${r.checked_at}</span></div>` : ''}
+        </div>
+      `).join('');
+      if (data.results && typeof data.results === 'string') {
+        el.innerHTML += `<div class="text-xs text-muted mt-8">📁 CSV: ${data.results}</div>`;
+      }
+    } else if (type === 'mint' && data.mint) {
+      const m = data.mint;
+      el.innerHTML = `
+        <div class="result-card">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+            <span class="pill pill-${m.status === 'pending_sign' ? 'yellow' : m.status === 'pending_submit' ? 'blue' : 'gray'}">${m.status || 'pending'}</span>
+            <span class="pill pill-blue">${m.provider || '-'}</span>
+          </div>
+          <div class="field"><span class="key">Provider</span><span class="val">${m.provider || '-'}</span></div>
+          <div class="field"><span class="key">Chain</span><span class="val">${m.chain || '-'}</span></div>
+          <div class="field"><span class="key">Collection</span><span class="val">${m.collection_slug || '-'}</span></div>
+          ${m.contract_address ? `<div class="field"><span class="key">Contract</span><span class="val mono text-sm">${shortAddr(m.contract_address)}${m.contract_address.slice(8)}</span></div>` : ''}
+          <div class="field"><span class="key">Quantity</span><span class="val">${m.quantity || 1}</span></div>
+          ${m.recipient ? `<div class="field"><span class="key">Recipient</span><span class="val mono text-sm">${shortAddr(m.recipient)}${m.recipient.slice(8)}</span></div>` : ''}
+          ${m.value_wei && m.value_wei !== '0' ? `<div class="field"><span class="key">Value</span><span class="val">${m.value_wei} wei</span></div>` : ''}
+        </div>`;
+    } else if (type === 'wl' && data.result) {
+      const r = data.result;
+      el.innerHTML = `
+        <div class="result-card">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+            <span class="pill pill-${r.status === 'pending_submit' ? 'yellow' : 'blue'}">${r.status || 'pending'}</span>
+            <span class="pill pill-blue">#${r.account_id || '-'}</span>
+          </div>
+          <div class="field"><span class="key">Project</span><span class="val">${r.project || '-'}</span></div>
+          <div class="field"><span class="key">Wallet</span><span class="val mono text-sm">${r.wallet_address ? shortAddr(r.wallet_address) + r.wallet_address.slice(8) : '-'}</span></div>
+          <div class="field"><span class="key">Twitter</span><span class="val">${r.twitter_handle || '-'}</span></div>
+          <div class="field"><span class="key">Payload Keys</span><span class="val">${Object.keys(r.payload || {}).join(', ') || '-'}</span></div>
+        </div>`;
+    } else if (type === 'mintAll' && data.results) {
+      const results = data.results || [];
+      if (!results.length) {
+        el.innerHTML = '<div class="empty-state">Tidak ada hasil mint.</div>';
+        return;
+      }
+      el.innerHTML = results.map(r => `
+        <div class="result-card">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+            <span class="pill pill-${r.status === 'pending_sign' ? 'yellow' : 'gray'}">${r.status || 'pending'}</span>
+            <span class="pill pill-gray">${r.account ? shortAddr(r.account) + (r.account || '').slice(8) : '-'}</span>
+          </div>
+          <div class="field"><span class="key">Provider</span><span class="val">${r.provider || '-'}</span></div>
+          <div class="field"><span class="key">Qty</span><span class="val">${r.quantity || 1}</span></div>
+        </div>
+      `).join('');
+      el.innerHTML += `<div class="text-xs text-muted mt-8">📊 ${results.length} account(s) processed</div>`;
+    } else {
+      el.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  }
+
+  /* ── Form Fillers ── */
+  function fillGlobalForm(settings) {
+    const form = document.getElementById('globalSettingsForm');
+    const g = settings.global || {};
+    const ws = g.wallet_settings || {};
+    const rpc = g.rpc || {};
+    const proxy = g.proxy || {};
+    const captcha = g.captcha || {};
+    const ui = settings.ui || {};
+    form.wallet_source.value = String(ws.source || 'manual');
+    form.default_mint_accounts.value = String(ws.default_mint_accounts || 1);
+    form.global_rpc_default_url.value = String(rpc.default_url || '');
+    form.global_rpc_fallback_urls.value = csvFromArray(rpc.fallback_urls || []);
+    form.global_proxy_enabled.checked = boolValue(proxy.enabled);
+    form.global_proxy_default_url.value = String(proxy.default_url || '');
+    form.global_proxy_rotate.value = String(boolValue(proxy.rotate));
+    form.global_captcha_provider.value = String(captcha.provider || '2captcha');
+    form.global_captcha_api_key.value = String(captcha.api_key || '');
+    form.ui_allow_user_edit.checked = boolValue(ui.allow_user_edit);
+    form.ui_persist_to_local_storage.checked = boolValue(ui.persist_to_local_storage);
+  }
+
+  function fillProjectForm(project) {
+    const form = document.getElementById('projectSettingsForm');
+    const mint = project.mint || {};
+    const seadrop = project.seadrop || {};
+    const rpc = project.rpc || {};
+    const proxy = project.proxy || {};
+    const captcha = project.captcha || {};
+    form.slug.value = String(project.slug || project.key || 'kuongate');
+    form.name.value = String(project.name || '');
+    form.chain.value = String(project.chain || 'ethereum');
+    form.wl_url.value = String(project.wl_url || '');
+    form.adapter.value = String(project.adapter || 'kuongate');
+    form.submit_path.value = String(project.submit_path || '');
+    form.required_fields.value = csvFromArray(project.required_fields || []);
+    form.field_map.value = tryJson(project.field_map || {}, {});
+    form.mint_provider.value = String(mint.provider || 'seadrop');
+    form.mint_chain.value = String(mint.chain || 'ethereum');
+    form.mint_quantity.value = String(mint.quantity || 1);
+    form.mint_collection_slug.value = String(mint.collection_slug || '');
+    form.mint_contract_address.value = String(mint.contract_address || '');
+    form.mint_value_wei.value = String(mint.value_wei || '0');
+    form.mint_function.value = String(mint.mint_function || 'mint');
+    form.mint_quantity_field.value = String(mint.quantity_field || 'quantity');
+    form.mint_price_field.value = String(mint.price_field || 'value');
+    form.mint_recipient_field.value = String(mint.recipient_field || 'recipient');
+    form.mint_recipient_mode.value = String(mint.recipient_mode || 'sender');
+    form.mint_allow_user_edit.checked = boolValue(mint.allow_user_edit);
+    form.mint_tx_overrides.value = tryJson(mint.tx_overrides || {}, {});
+    form.seadrop_enabled.checked = boolValue(seadrop.enabled);
+    form.seadrop_collection_slug.value = String(seadrop.collection_slug || '');
+    form.seadrop_chain.value = String(seadrop.chain || 'ethereum');
+    form.seadrop_mint_quantity_default.value = String(seadrop.mint_quantity_default || 1);
+    form.seadrop_slippage_tolerance.value = String(seadrop.slippage_tolerance ?? 0.01);
+    form.rpc_name.value = String(rpc.name || 'default');
+    form.rpc_url.value = String(rpc.url || '');
+    form.rpc_chain_id.value = String(rpc.chain_id || '1');
+    form.project_proxy_enabled.checked = boolValue(proxy.enabled);
+    form.project_proxy_url.value = String(proxy.url || '');
+    form.project_proxy_rotate.value = String(boolValue(proxy.rotate));
+    form.captcha_provider.value = String(captcha.provider || '2captcha');
+    form.captcha_api_key.value = String(captcha.api_key || '');
+    form.captcha_sitekey.value = String(captcha.sitekey || '');
+    form.stages.value = tryJson(project.stages || [], []);
+  }
+
+  /* ── Data Loading ── */
+  async function loadSummary() {
+    const data = await safeApi(() => apiGet(API.summary), 'Summary');
+    state.summary = data;
+    renderSummary(); renderDump();
+  }
+
+  async function loadSettings() {
+    const data = await safeApi(() => apiGet(API.settings), 'Settings');
+    state.settings = data.settings;
+    fillGlobalForm(state.settings);
+    const slug = document.getElementById('projectSettingsForm').slug.value || 'kuongate';
+    const project = projectBySlug(slug) || state.settings.projects_list?.[0];
+    if (project) fillProjectForm(project);
+    renderAccounts(); renderProjects(); renderWalletSelect(); renderPipelineAccounts(); renderDump();
+  }
+
+  async function loadProject(slug) {
+    const data = await safeApi(() => apiGet(`${API.project}?project=${encodeURIComponent(slug)}`), 'Load Project');
+    fillProjectForm(data.project);
+    return data.project;
+  }
+
+  async function refreshAll() {
+    const btn = document.getElementById('refreshAllBtn');
+    btn.disabled = true; btn.textContent = '⟳ Loading...';
+    try {
+      await Promise.all([loadSummary(), loadSettings()]);
+      toast('Semua data dimuat ulang', 'success', 2000);
+    } catch (e) { /* toast already shown */ }
+    btn.disabled = false; btn.textContent = '⟳ Refresh All';
+  }
+
+  function serializeProjectForm(form) {
+    return {
+      slug: form.slug.value.trim(), name: form.name.value.trim(), chain: form.chain.value.trim(),
+      wl_url: form.wl_url.value.trim(), adapter: form.adapter.value.trim(), submit_path: form.submit_path.value.trim(),
+      required_fields: form.required_fields.value,
+      field_map: parseJsonText(form.field_map.value, {}),
+      mint: {
+        provider: form.mint_provider.value.trim(), chain: form.mint_chain.value.trim(),
+        quantity: Number(form.mint_quantity.value || 1), collection_slug: form.mint_collection_slug.value.trim(),
+        contract_address: form.mint_contract_address.value.trim(), value_wei: form.mint_value_wei.value.trim(),
+        mint_function: form.mint_function.value.trim(), quantity_field: form.mint_quantity_field.value.trim(),
+        price_field: form.mint_price_field.value.trim(), recipient_field: form.mint_recipient_field.value.trim(),
+        recipient_mode: form.mint_recipient_mode.value.trim(), allow_user_edit: form.mint_allow_user_edit.checked,
+        tx_overrides: parseJsonText(form.mint_tx_overrides.value, {})
+      },
+      seadrop: {
+        enabled: form.seadrop_enabled.checked, collection_slug: form.seadrop_collection_slug.value.trim(),
+        chain: form.seadrop_chain.value.trim(), mint_quantity_default: Number(form.seadrop_mint_quantity_default.value || 1),
+        slippage_tolerance: Number(form.seadrop_slippage_tolerance.value || 0.01)
+      },
+      rpc: { name: form.rpc_name.value.trim(), url: form.rpc_url.value.trim(), chain_id: form.rpc_chain_id.value.trim() },
+      proxy: { enabled: form.project_proxy_enabled.checked, url: form.project_proxy_url.value.trim(), rotate: boolValue(form.project_proxy_rotate.value) },
+      captcha: { provider: form.captcha_provider.value.trim(), api_key: form.captcha_api_key.value.trim(), sitekey: form.captcha_sitekey.value.trim() },
+      stages: parseJsonText(form.stages.value, [])
+    };
+  }
+
+  /* ── Bind Forms ── */
+  function bindForms() {
+    /* Tab init */
+    initTabs();
+
+    /* Resolve */
+    document.getElementById('resolveForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const target_url = e.target.target_url.value.trim();
+      if (!target_url) return;
       try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_) {
-        return fallback;
+        const data = await apiPost(API.resolve, { target_url });
+        state.resolvedTarget = data.target;
+        renderResolved(); renderDump();
+        toast('Target resolved: ' + data.target.slug, 'success', 2500);
+      } catch (err) { toast('Resolve gagal: ' + err.message, 'error'); }
+    });
+    document.getElementById('resolveBtn').addEventListener('click', () => document.getElementById('resolveForm').requestSubmit());
+
+    document.getElementById('quickCheckBtn').addEventListener('click', () => {
+      const t = state.resolvedTarget; if (!t) return;
+      const form = document.getElementById('checkForm');
+      form.target_url.value = t.normalized_url || '';
+      form.requestSubmit();
+    });
+    document.getElementById('quickMintBtn').addEventListener('click', () => {
+      const t = state.resolvedTarget; if (!t) return;
+      const form = document.getElementById('mintForm');
+      form.target_url.value = t.normalized_url || '';
+      form.requestSubmit();
+    });
+
+    /* Global Settings */
+    document.getElementById('globalSettingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); const f = e.target;
+      const payload = {
+        global: {
+          wallet_settings: { source: f.wallet_source.value.trim(), default_mint_accounts: Number(f.default_mint_accounts.value || 1) },
+          rpc: { default_url: f.global_rpc_default_url.value.trim(), fallback_urls: f.global_rpc_fallback_urls.value.split(',').map(s => s.trim()).filter(Boolean) },
+          proxy: { enabled: f.global_proxy_enabled.checked, default_url: f.global_proxy_default_url.value.trim(), rotate: boolValue(f.global_proxy_rotate.value) },
+          captcha: { provider: f.global_captcha_provider.value.trim(), api_key: f.global_captcha_api_key.value.trim() }
+        },
+        ui: { allow_user_edit: f.ui_allow_user_edit.checked, persist_to_local_storage: f.ui_persist_to_local_storage.checked }
+      };
+      try {
+        await apiPost(API.settings, payload);
+        await refreshAll();
+        toast('Global settings saved', 'success', 2000);
+      } catch (err) { toast('Save gagal: ' + err.message, 'error'); }
+    });
+
+    /* Account */
+    document.getElementById('accountForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        await apiPost(API.account, {
+          account_id: Number(data.account_id || 0), label: data.label || '',
+          wallet_address: data.wallet_address || '', twitter_handle: data.twitter_handle || '',
+          gmail: data.gmail || '', discord_user_id: data.discord_user_id || '',
+          discord_bot_name: data.discord_bot_name || '', status: data.status || 'active',
+          notes: data.notes || ''
+        });
+        e.target.reset(); e.target.status.value = 'active';
+        await refreshAll();
+        toast('Account saved', 'success', 2000);
+      } catch (err) { toast('Save akun gagal: ' + err.message, 'error'); }
+    });
+
+    /* Project */
+    document.getElementById('projectSettingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = serializeProjectForm(e.target);
+      try {
+        await apiPost(API.project, payload);
+        await refreshAll();
+        await loadProject(payload.slug);
+        toast('Project settings saved', 'success', 2000);
+      } catch (err) { toast('Save project gagal: ' + err.message, 'error'); }
+    });
+
+    /* WL */
+    document.getElementById('wlForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(e.target).entries());
+      const project = payload.project || 'kuongate';
+      if (!confirm('Yakin submit WL untuk project ' + project + '?')) return;
+      try {
+        const data = await apiPost(API.wl, payload);
+        state.lastWl = data;
+        renderResult(data, 'wlResult', 'wl');
+        renderDump();
+        toast('WL submitted', 'success', 3000);
+      } catch (err) { toast('WL submit gagal: ' + err.message, 'error'); }
+    });
+
+    /* Check */
+    document.getElementById('checkForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); const f = e.target;
+      const target_url = f.target_url.value.trim();
+      const project = f.project.value.trim() || 'kuongate';
+      if (!confirm('Lakukan check eligibility untuk project ' + project + '?')) return;
+      const payload = target_url ? { target_url } : { project: project };
+      try {
+        const data = await apiPost(API.check, payload);
+        state.lastCheck = data;
+        renderResult(data, 'checkResult', 'check');
+        renderDump();
+        toast('Eligibility check selesai', 'success', 3000);
+      } catch (err) { toast('Check gagal: ' + err.message, 'error'); }
+    });
+
+    /* Mint */
+    document.getElementById('mintForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); const f = e.target;
+      const project = f.project.value.trim() || 'kuongate';
+      if (!confirm('Siapkan mint payload untuk project ' + project + '?')) return;
+      const target_url = f.target_url.value.trim();
+      const payload = { project: project, wallet_address: f.wallet_address.value.trim(), quantity: Number(f.quantity.value || 1) };
+      if (target_url) payload.target_url = target_url;
+      try {
+        const data = await apiPost(API.mint, payload);
+        state.lastMint = data;
+        renderResult(data, 'mintResult', 'mint');
+        renderDump();
+        toast('Mint payload siap', 'success', 3000);
+      } catch (err) { toast('Mint gagal: ' + err.message, 'error'); }
+    });
+
+    /* Mint All — Live Streaming via SSE */
+    let pipelinePollTimer = null;
+    let pipelineRunId = null;
+
+    function showPipelineDot() {
+      const dot = document.getElementById('pipelineLiveDot');
+      if (dot) dot.style.display = 'inline-block';
+    }
+    function hidePipelineDot() {
+      const dot = document.getElementById('pipelineLiveDot');
+      if (dot) dot.style.display = 'none';
+    }
+
+    function pipelineLog(msg, type) {
+      const box = document.getElementById('pipelineLog');
+      const content = document.getElementById('pipelineLogContent');
+      box.style.display = 'block';
+      const line = document.createElement('div');
+      line.style.color = type === 'error' ? '#ef4444' : type === 'skip' ? '#a0aec0' : type === 'done' ? '#22c55e' : '#e2e8f0';
+      line.textContent = '> ' + msg;
+      content.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function pollPipeline(runId) {
+      const sinceKey = 'pip_since_' + runId;
+      let since = parseInt(sessionStorage.getItem(sinceKey) || '0');
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+      while (true) {
+        try {
+          const res = await fetch(API.pipelineEvents + '?run_id=' + encodeURIComponent(runId) + '&since=' + since);
+          const data = await res.json();
+          if (data.events && data.events.length) {
+            for (const ev of data.events) {
+              if (ev.event === 'start') {
+                pipelineLog('Memulai pipeline untuk ' + (ev.project || '') + ' — ' + ev.total + ' akun');
+              } else if (ev.event === 'progress') {
+                pipelineLog('[' + ev.current + '/' + ev.total + '] #' + (ev.account_id || '') + (ev.note ? ' ' + ev.note : ''));
+                document.getElementById('pipelineProgress').textContent = 'Progress: ' + ev.current + '/' + ev.total;
+              } else if (ev.event === 'skip') {
+                pipelineLog('#' + (ev.account_id || '') + ' SKIP — ' + (ev.reason || ''), 'skip');
+              } else if (ev.event === 'result') {
+                pipelineLog('#' + (ev.account_id || '') + ' ✓ payload siap (' + (ev.provider || '') + ')', 'ok');
+              } else if (ev.event === 'error') {
+                pipelineLog('#' + (ev.account_id || '') + ' ✕ ' + (ev.error || 'error'), 'error');
+              } else if (ev.event === 'done') {
+                const count = ev.count || 0;
+                pipelineLog('Selesai! ' + count + ' account(s) diproses', 'done');
+                document.getElementById('pipelineProgress').textContent = 'Selesai: ' + count + ' akun';
+                hidePipelineDot();
+                // render final results
+                if (ev.results) {
+                  state.lastMintAll = { results: ev.results };
+                  renderResult(state.lastMintAll, 'pipelineResult', 'mintAll');
+                  renderDump();
+                }
+                toast('Pipeline selesai: ' + count + ' account(s)', 'success', 4000);
+                return; // stop polling
+              }
+              since = ev._seq || (since + 1);
+            }
+            sessionStorage.setItem(sinceKey, String(since));
+          }
+          if (data.status === 'done') {
+            hidePipelineDot();
+            return;
+          }
+        } catch (err) {
+          pipelineLog('Poll error: ' + err.message, 'error');
+          hidePipelineDot();
+          return;
+        }
+        await sleep(800);
       }
     }
 
-    function write(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
-    }
+    document.getElementById('pipelineForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); const f = e.target;
+      const project = f.project.value.trim() || 'kuongate';
+      if (!confirm('Jalankan Mint All untuk project ' + project + '?')) return;
+      const target_url = f.target_url.value.trim();
+      const checked = [...document.querySelectorAll('.pipeline-account:checked')].map(el => Number(el.value));
 
-    function ensureSeed() {
-      if (!localStorage.getItem(STORAGE_KEYS.projects)) write(STORAGE_KEYS.projects, DEFAULT_PROJECTS);
-      if (!localStorage.getItem(STORAGE_KEYS.accounts)) write(STORAGE_KEYS.accounts, DEFAULT_ACCOUNTS);
-      if (!localStorage.getItem(STORAGE_KEYS.submissions)) write(STORAGE_KEYS.submissions, []);
-      if (!localStorage.getItem(STORAGE_KEYS.eligibility)) write(STORAGE_KEYS.eligibility, []);
-      if (!localStorage.getItem(STORAGE_KEYS.mints)) write(STORAGE_KEYS.mints, []);
-    }
+      // Reset log
+      document.getElementById('pipelineLogContent').innerHTML = '';
+      document.getElementById('pipelineLog').style.display = 'none';
+      showPipelineDot();
 
-    function nowIso() {
-      return new Date().toISOString();
-    }
+      try {
+        const params = 'project=' + encodeURIComponent(project) + (checked.length ? '&account_ids=' + checked.join(',') : '');
+        const res = await fetch(API.pipelineStart + '?' + params);
+        const data = await res.json();
+        if (data.run_id) {
+          pipelineRunId = data.run_id;
+          await pollPipeline(data.run_id);
+        } else {
+          toast('Gagal start pipeline', 'error');
+          hidePipelineDot();
+        }
+      } catch (err) {
+        toast('Pipeline gagal: ' + err.message, 'error');
+        hidePipelineDot();
+      }
+    });
 
-    function stageBucket(stageName) {
-      const value = String(stageName || '').toLowerCase();
-      if (value.includes('gtd') || value.includes('allowlist') || value.includes('wl') || value.includes('presale')) return 'GTD';
-      if (value.includes('fcfs') || value.includes('first come')) return 'FCFS';
-      if (value.includes('public')) return 'PUBLIC';
-      return 'UNKNOWN';
-    }
+    /* Button shortcuts */
+    const shortcuts = {
+      runWlBtn: 'wlForm', runCheckBtn: 'checkForm', runMintBtn: 'mintForm', runMintAllBtn: 'pipelineForm'
+    };
+    Object.entries(shortcuts).forEach(([btnId, formId]) => {
+      document.getElementById(btnId).addEventListener('click', () => document.getElementById(formId).requestSubmit());
+    });
 
-    function normalizeHandle(value) {
-      return String(value || '').trim().toLowerCase().replace(/^@/, '');
-    }
-
-    function getProjects() { return read(STORAGE_KEYS.projects, DEFAULT_PROJECTS); }
-    function getAccounts() { return read(STORAGE_KEYS.accounts, DEFAULT_ACCOUNTS); }
-    function getSubmissions() { return read(STORAGE_KEYS.submissions, []); }
-    function getEligibility() { return read(STORAGE_KEYS.eligibility, []); }
-    function getMints() { return read(STORAGE_KEYS.mints, []); }
-
-    function findProject(slug) {
-      return getProjects().find((project) => project.slug === slug);
-    }
-
-    function findAccountByWallet(wallet) {
-      return getAccounts().find((account) => String(account.wallet_address || '').toLowerCase().trim() === String(wallet || '').toLowerCase().trim());
-    }
-
-    function findAccountByTwitter(handle) {
-      const needle = normalizeHandle(handle);
-      return getAccounts().find((account) => normalizeHandle(account.twitter_handle) === needle);
-    }
-
-    function upsertAccount(account) {
-      const items = getAccounts();
-      const idx = items.findIndex((item) => Number(item.account_id) === Number(account.account_id));
-      if (idx >= 0) items[idx] = account; else items.push(account);
-      items.sort((a, b) => Number(a.account_id) - Number(b.account_id));
-      write(STORAGE_KEYS.accounts, items);
-    }
-
-    function upsertProject(project) {
-      const items = getProjects();
-      const idx = items.findIndex((item) => item.slug === project.slug);
-      if (idx >= 0) items[idx] = project; else items.push(project);
-      items.sort((a, b) => String(a.slug).localeCompare(String(b.slug)));
-      write(STORAGE_KEYS.projects, items);
-    }
-
-    function renderSummary() {
-      const projects = getProjects();
-      const accounts = getAccounts();
-      const submissions = getSubmissions();
-      const eligibility = getEligibility();
-      const mints = getMints();
-      document.getElementById('summaryBox').innerHTML = `
-        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-          <div class="card" style="margin:0"><div class="small muted">Projects</div><h3>${projects.length}</h3></div>
-          <div class="card" style="margin:0"><div class="small muted">Accounts</div><h3>${accounts.length}</h3></div>
-          <div class="card" style="margin:0"><div class="small muted">WL submits</div><h3>${submissions.length}</h3></div>
-          <div class="card" style="margin:0"><div class="small muted">Eligibility rows</div><h3>${eligibility.length}</h3></div>
-          <div class="card" style="margin:0"><div class="small muted">Mint rows</div><h3>${mints.length}</h3></div>
-        </div>
-      `;
-      document.getElementById('dataDump').textContent = JSON.stringify({ projects, accounts, submissions, eligibility, mints }, null, 2);
-    }
-
-    function renderAccounts() {
-      const box = document.getElementById('accountsBox');
-      const accounts = getAccounts();
-      box.innerHTML = accounts.map((account) => `
-        <div class="card" style="margin:0">
-          <div><span class="pill">#${account.account_id}</span><span class="pill">${account.status || 'active'}</span></div>
-          <div><strong>${account.label || '(no label)'}</strong></div>
-          <div class="small muted">${account.wallet_address || '(no wallet)'}</div>
-          <div class="small muted">${account.twitter_handle || '(no twitter)'}</div>
-          <div class="small muted">${account.gmail || '(no gmail)'}</div>
-          <div class="small muted">${account.discord_user_id || ''} ${account.discord_bot_name || ''}</div>
-          <div class="small muted">${account.notes || ''}</div>
-        </div>
-      `).join('') || '<div class="muted">Belum ada akun.</div>';
-    }
-
-    function renderProjects() {
-      const box = document.getElementById('projectsBox');
-      const projects = getProjects();
-      box.innerHTML = projects.map((project) => `
-        <div class="card" style="margin:0">
-          <div><span class="pill">${project.slug}</span><span class="pill">${project.chain || 'unknown'}</span></div>
-          <div><strong>${project.name || project.slug}</strong></div>
-          <div class="small muted">WL: ${project.wl_url || '-'}</div>
-          <div class="small muted">Adapter: ${project.adapter || '-'}</div>
-          <div class="small muted">Submit: ${project.submit_path || '-'}</div>
-          <div class="small muted">Required: ${(project.required_fields || []).join(', ')}</div>
-        </div>
-      `).join('') || '<div class="muted">Belum ada proyek.</div>';
-    }
-
-    function renderTables() {
-      const submissions = getSubmissions().slice().reverse().slice(0, 10);
-      const eligibility = getEligibility().slice().reverse().slice(0, 10);
-      const mints = getMints().slice().reverse().slice(0, 10);
-      const wl = submissions.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Project</th><th>Status</th></tr></thead><tbody>${submissions.map((row) => `<tr><td>${row.at}</td><td>${row.account_id}</td><td>${row.project}</td><td>${row.status}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada submit.</div>';
-      const check = eligibility.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Stage</th><th>Elig</th></tr></thead><tbody>${eligibility.map((row) => `<tr><td>${row.checked_at}</td><td>${row.account_id}</td><td>${row.stage_type}</td><td class="${row.eligible ? 'good' : 'bad'}">${row.eligible}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada eligibility.</div>';
-      const mint = mints.length ? `<table class="table"><thead><tr><th>Waktu</th><th>Akun</th><th>Stage</th><th>Status</th></tr></thead><tbody>${mints.map((row) => `<tr><td>${row.minted_at}</td><td>${row.account_id}</td><td>${row.stage}</td><td>${row.status}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Belum ada mint.</div>';
-      document.getElementById('wlResult').textContent = submissions.length ? JSON.stringify(submissions[0], null, 2) : 'Belum ada hasil.';
-      document.getElementById('checkResult').textContent = eligibility.length ? JSON.stringify(eligibility[0], null, 2) : 'Belum ada hasil.';
-      document.getElementById('mintResult').textContent = mints.length ? JSON.stringify(mints[0], null, 2) : 'Belum ada hasil.';
-      document.getElementById('pipelineResult').textContent = JSON.stringify({ submissions: submissions.length, eligibility: eligibility.length, mints: mints.length }, null, 2);
-      return { wl, check, mint };
-    }
-
-    function submitWl(form) {
-      const data = Object.fromEntries(new FormData(form).entries());
-      const project = findProject(data.project);
-      if (!project) throw new Error('Project tidak ditemukan');
-      const account = data.select_by === 'wallet_address' ? findAccountByWallet(data.select_value) : findAccountByTwitter(data.select_value);
-      if (!account) throw new Error('Akun tidak ditemukan');
-      const record = {
-        at: nowIso(),
-        project: project.slug,
-        account_id: account.account_id,
-        wallet_address: account.wallet_address,
-        twitter_handle: account.twitter_handle,
-        share_link: data.share_link || '',
-        image: data.image || '',
-        note: data.note || '',
-        status: 'submitted'
-      };
-      const items = getSubmissions();
-      items.push(record);
-      write(STORAGE_KEYS.submissions, items);
-      return record;
-    }
-
-    function runCheck(projectSlug) {
-      const project = findProject(projectSlug);
-      if (!project) throw new Error('Project tidak ditemukan');
-      const rows = [];
-      for (const account of getAccounts()) {
-        for (const stage of ['GTD', 'FCFS', 'PUBLIC']) {
-          const eligible = stage === 'PUBLIC' || (account.status === 'active' && (account.wallet_address || account.twitter_handle));
-          rows.push({
-            account_id: account.account_id,
-            wallet_address: account.wallet_address,
-            twitter_handle: account.twitter_handle,
-            project: project.slug,
-            stage,
-            stage_type: stage,
-            eligible,
-            reason: eligible ? 'ready' : 'needs allowlist / active account',
-            status: eligible ? 'open' : 'closed',
-            checked_at: nowIso()
+    /* CSV Import */
+    document.getElementById('csvImportBtn').addEventListener('click', () => {
+      const fileInput = document.getElementById('csvFileInput');
+      const file = fileInput.files[0];
+      if (!file) { toast('Pilih file CSV dulu', 'warning'); return; }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(l => l.trim());
+        if (!lines.length) { toast('CSV kosong', 'warning'); return; }
+        const accounts = [];
+        for (const line of lines) {
+          const parts = line.split(',').map(s => s.trim());
+          if (parts.length < 1) continue;
+          const wallet = parts[0] || '';
+          const twitter = parts[1] || '';
+          const label = parts[2] || '';
+          const gmail = parts[3] || '';
+          const discord = parts[4] || '';
+          const notes = parts[5] || '';
+          accounts.push({
+            account_id: 0, label, wallet_address: wallet, twitter_handle: twitter,
+            gmail, discord_user_id: discord, status: 'active', notes
           });
         }
-      }
-      const items = getEligibility();
-      items.push(...rows);
-      write(STORAGE_KEYS.eligibility, items);
-      return { project: project.slug, rows };
-    }
-
-    function runMint(projectSlug, stage) {
-      const project = findProject(projectSlug);
-      if (!project) throw new Error('Project tidak ditemukan');
-      const eligibility = getEligibility().filter((row) => row.project === project.slug && row.stage_type === stage);
-      const rows = getAccounts().map((account) => {
-        const eligible = stage === 'PUBLIC' || eligibility.some((row) => Number(row.account_id) === Number(account.account_id) && row.eligible);
-        return {
-          account_id: account.account_id,
-          wallet_address: account.wallet_address,
-          twitter_handle: account.twitter_handle,
-          project: project.slug,
-          stage,
-          status: eligible ? 'ready' : 'blocked',
-          tx_hash: eligible ? `0x${Math.random().toString(16).slice(2).padEnd(64, '0').slice(0, 64)}` : '',
-          reason: eligible ? 'mint adapter not wired yet' : 'not eligible',
-          minted_at: nowIso()
-        };
-      });
-      const items = getMints();
-      items.push(...rows);
-      write(STORAGE_KEYS.mints, items);
-      return { project: project.slug, stage, rows };
-    }
-
-    function runPipeline(projectSlug, stage) {
-      const check = runCheck(projectSlug);
-      const mint = runMint(projectSlug, stage);
-      return { project: projectSlug, stage, eligibility: check.rows, mint: mint.rows };
-    }
-
-    function bindForms() {
-      document.getElementById('accountForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const data = Object.fromEntries(new FormData(event.target).entries());
-        const account = {
-          account_id: Number(data.account_id),
-          label: data.label || '',
-          wallet_address: data.wallet_address || '',
-          twitter_handle: data.twitter_handle || '',
-          gmail: data.gmail || '',
-          discord_user_id: data.discord_user_id || '',
-          discord_bot_name: data.discord_bot_name || '',
-          status: data.status || 'active',
-          notes: data.notes || ''
-        };
-        upsertAccount(account);
-        renderAll();
-      });
-
-      document.getElementById('projectForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const data = Object.fromEntries(new FormData(event.target).entries());
-        const project = {
-          slug: data.slug,
-          name: data.name || data.slug,
-          chain: data.chain || 'ethereum',
-          wl_url: data.wl_url || '',
-          adapter: data.adapter || 'generic',
-          submit_path: data.submit_path || '',
-          required_fields: String(data.required_fields || '').split(',').map((item) => item.trim()).filter(Boolean)
-        };
-        upsertProject(project);
-        renderAll();
-      });
-
-      document.getElementById('wlForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        try {
-          const result = submitWl(event.target);
-          document.getElementById('wlResult').textContent = JSON.stringify(result, null, 2);
-          renderAll();
-        } catch (error) {
-          document.getElementById('wlResult').textContent = String(error.message || error);
+        if (!accounts.length) { toast('Tidak ada data valid', 'warning'); return; }
+        // Save one by one
+        let success = 0, fail = 0;
+        for (const acc of accounts) {
+          try {
+            await apiPost(API.account, acc);
+            success++;
+          } catch(_) { fail++; }
         }
-      });
+        document.getElementById('csvImportResult').textContent = 'Import: ' + success + ' sukses, ' + fail + ' gagal dari ' + accounts.length + ' baris.';
+        await loadSettings();
+        toast('CSV import: ' + success + ' akun ditambahkan', success > 0 ? 'success' : 'error', 3000);
+      };
+      reader.readAsText(file);
+    });
 
-      document.getElementById('checkForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        try {
-          const data = Object.fromEntries(new FormData(event.target).entries());
-          const result = runCheck(data.project);
-          document.getElementById('checkResult').textContent = JSON.stringify(result, null, 2);
-          renderAll();
-        } catch (error) {
-          document.getElementById('checkResult').textContent = String(error.message || error);
-        }
-      });
+    document.getElementById('csvTemplateBtn').addEventListener('click', () => {
+      const csv = 'wallet_address,twitter_handle,label,gmail,discord_user_id,notes\n0x1234...abc,@username,main,email@gmail.com,user123,\n0x5678...def,,backup,,,';
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'accounts_template.csv'; a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Template CSV diunduh', 'info', 2000);
+    });
 
-      document.getElementById('mintForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        try {
-          const data = Object.fromEntries(new FormData(event.target).entries());
-          const result = runMint(data.project, data.stage || 'PUBLIC');
-          document.getElementById('mintResult').textContent = JSON.stringify(result, null, 2);
-          renderAll();
-        } catch (error) {
-          document.getElementById('mintResult').textContent = String(error.message || error);
-        }
-      });
+        document.getElementById('refreshSummary').addEventListener('click', refreshAll);
+    document.getElementById('refreshAccounts').addEventListener('click', loadSettings);
+    document.getElementById('reloadSettingsBtn').addEventListener('click', loadSettings);
+    document.getElementById('reloadDumpBtn').addEventListener('click', renderDump);
+    document.getElementById('refreshAllBtn').addEventListener('click', refreshAll);
+    document.getElementById('loadProjectBtn').addEventListener('click', async () => {
+      const slug = document.getElementById('projectSettingsForm').slug.value || 'kuongate';
+      try { await loadProject(slug); toast('Project loaded: ' + slug, 'info', 2000); }
+      catch (err) { toast('Load project gagal: ' + err.message, 'error'); }
+    });
 
-      document.getElementById('pipelineForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        try {
-          const data = Object.fromEntries(new FormData(event.target).entries());
-          const result = runPipeline(data.project, data.stage || 'PUBLIC');
-          document.getElementById('pipelineResult').textContent = JSON.stringify(result, null, 2);
-          renderAll();
-        } catch (error) {
-          document.getElementById('pipelineResult').textContent = String(error.message || error);
-        }
-      });
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state.settings || {}, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'automintnft-settings.json'; a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Settings exported', 'success', 2000);
+    });
+  }
 
-      document.getElementById('runWlBtn').addEventListener('click', () => document.getElementById('wlForm').requestSubmit());
-      document.getElementById('runCheckBtn').addEventListener('click', () => document.getElementById('checkForm').requestSubmit());
-      document.getElementById('runMintBtn').addEventListener('click', () => document.getElementById('mintForm').requestSubmit());
-      document.getElementById('runPipelineBtn').addEventListener('click', () => document.getElementById('pipelineForm').requestSubmit());
-
-      document.getElementById('refreshSummary').addEventListener('click', renderAll);
-      document.getElementById('refreshAccounts').addEventListener('click', renderAll);
-      document.getElementById('refreshProjects').addEventListener('click', renderAll);
-      document.getElementById('exportBtn').addEventListener('click', () => {
-        const payload = {
-          projects: getProjects(),
-          accounts: getAccounts(),
-          submissions: getSubmissions(),
-          eligibility: getEligibility(),
-          mints: getMints()
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'automintnft-export.json';
-        a.click();
-        URL.revokeObjectURL(a.href);
-      });
-      document.getElementById('resetBtn').addEventListener('click', () => {
-        if (!confirm('Reset semua demo data?')) return;
-        localStorage.removeItem(STORAGE_KEYS.accounts);
-        localStorage.removeItem(STORAGE_KEYS.projects);
-        localStorage.removeItem(STORAGE_KEYS.submissions);
-        localStorage.removeItem(STORAGE_KEYS.eligibility);
-        localStorage.removeItem(STORAGE_KEYS.mints);
-        ensureSeed();
-        renderAll();
-      });
-      document.getElementById('clearLogsBtn').addEventListener('click', () => {
-        localStorage.setItem(STORAGE_KEYS.submissions, '[]');
-        localStorage.setItem(STORAGE_KEYS.eligibility, '[]');
-        localStorage.setItem(STORAGE_KEYS.mints, '[]');
-        renderAll();
-      });
-    }
-
-    function renderAll() {
-      renderSummary();
-      renderAccounts();
-      renderProjects();
-      renderTables();
-    }
-
-    ensureSeed();
-    bindForms();
-    renderAll();
-  </script>
+  /* ── Init ── */
+  bindForms();
+  refreshAll().catch(err => {
+    document.getElementById('dataDump').textContent = 'Error: ' + (err.message || err);
+    toast('Gagal load data awal: ' + err.message, 'error', 6000);
+  });
+</script>
 </body>
 </html>

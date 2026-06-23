@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+dist/
+results/
+config/settings.yaml
+results/*.csv
+data/
